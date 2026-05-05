@@ -17,5 +17,6 @@ server.addTool(tools.getOpenPositionsTool);
 server.addTool(tools.getOpenOrdersTool);
 server.addTool(tools.getTradeHistoryTool);
 server.addTool(tools.getTwapOrdersTool);
+server.addTool(tools.getPortfolioTool);
 
 await server.start({ transportType: "stdio" });
