@@ -4,5 +4,6 @@ export { getHealthTool } from "./get-health.js";
 export { getOpenOrdersTool } from "./get-open-orders.js";
 export { getOpenPositionsTool } from "./get-open-positions.js";
 export { getPairRatioTool } from "./get-pair-ratio.js";
+export { getTradeHistoryTool } from "./get-trade-history.js";
 export { getTwapOrdersTool } from "./get-twap-orders.js";
 export { listMarketsTool } from "./list-markets.js";

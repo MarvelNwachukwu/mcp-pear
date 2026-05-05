@@ -15,6 +15,7 @@ server.addTool(tools.getPairRatioTool);
 server.addTool(tools.getAccountSummaryTool);
 server.addTool(tools.getOpenPositionsTool);
 server.addTool(tools.getOpenOrdersTool);
+server.addTool(tools.getTradeHistoryTool);
 server.addTool(tools.getTwapOrdersTool);
 
 await server.start({ transportType: "stdio" });
