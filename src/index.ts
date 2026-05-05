@@ -11,5 +11,6 @@ const server = new FastMCP({
 server.addTool(tools.getHealthTool);
 server.addTool(tools.listMarketsTool);
 server.addTool(tools.getActiveMarketsTool);
+server.addTool(tools.getPairRatioTool);
 
 await server.start({ transportType: "stdio" });
