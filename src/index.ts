@@ -13,5 +13,6 @@ server.addTool(tools.listMarketsTool);
 server.addTool(tools.getActiveMarketsTool);
 server.addTool(tools.getPairRatioTool);
 server.addTool(tools.getAccountSummaryTool);
+server.addTool(tools.getOpenPositionsTool);
 
 await server.start({ transportType: "stdio" });
