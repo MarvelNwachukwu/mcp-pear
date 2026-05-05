@@ -9,5 +9,6 @@ const server = new FastMCP({
 });
 
 server.addTool(tools.getHealthTool);
+server.addTool(tools.listMarketsTool);
 
 await server.start({ transportType: "stdio" });
