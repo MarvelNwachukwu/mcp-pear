@@ -1,2 +1,1 @@
-// Tool exports added in subsequent tasks.
-export {};
+export { getHealthTool } from "./get-health.js";
