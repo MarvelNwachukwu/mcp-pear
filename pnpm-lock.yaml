@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      dedent:
-        specifier: ^1.5.3
-        version: 1.7.2
       fastmcp:
         specifier: ^3.0.0
         version: 3.35.0
@@ -876,14 +873,6 @@ packages:
       supports-color: '*'
     peerDependenciesMeta:
       supports-color:
-        optional: true
-
-  dedent@1.7.2:
-    resolution: {integrity: sha512-WzMx3mW98SN+zn3hgemf4OzdmyNhhhKz5Ay0pUfQiMQ3e1g+xmTJWp/pKdwKVXhdSkAEGIIzqeuWrL3mV/AXbA==}
-    peerDependencies:
-      babel-plugin-macros: ^3.1.0
-    peerDependenciesMeta:
-      babel-plugin-macros:
         optional: true
 
   deep-eql@5.0.2:
@@ -2709,8 +2698,6 @@ snapshots:
   debug@4.4.3:
     dependencies:
       ms: 2.1.3
-
-  dedent@1.7.2: {}
 
   deep-eql@5.0.2: {}
 

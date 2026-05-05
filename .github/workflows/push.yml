@@ -1,7 +1,6 @@
-name: Push checks (Template - Manual Trigger)
+name: Push checks
 
-# To enable, change to e.g.: on: [push]
-on: workflow_dispatch
+on: [push, pull_request]
 
 jobs:
   Checkout:
@@ -35,5 +34,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build project
         run: pnpm run build
+      - name: Run tests
+        run: pnpm test
       - name: Biome Lint Check
         run: pnpm run lint
