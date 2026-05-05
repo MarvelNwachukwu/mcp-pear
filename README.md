@@ -40,6 +40,7 @@ mcp-pear
 | Env var | Required | Default | Description |
 |---|---|---|---|
 | `PEAR_API_KEY` | for auth tools | — | Your Pear API key. Public tools (1–4) work without it. |
+| `PEAR_ADDRESS` | for auth tools | — | Wallet address bound to your `PEAR_API_KEY`. |
 | `PEAR_API_BASE_URL` | no | `https://hl-v2.pearprotocol.io` | Pear API host. |
 | `PEAR_API_TIMEOUT_MS` | no | `10000` | Per-request timeout. |
 | `PEAR_CLIENT_ID` | no | `APITRADER` | Client identifier sent to `/auth/login`. |
@@ -55,7 +56,8 @@ Add to your `claude_desktop_config.json`:
       "command": "npx",
       "args": ["-y", "@marvelcodes/mcp-pear"],
       "env": {
-        "PEAR_API_KEY": "your-pear-api-key-here"
+        "PEAR_API_KEY": "your-pear-api-key-here",
+        "PEAR_ADDRESS": "0xYourWalletAddress"
       }
     }
   }
@@ -73,7 +75,7 @@ const pearTools = new McpToolset({
 	transport: new StdioTransport({
 		command: "npx",
 		args: ["-y", "@marvelcodes/mcp-pear"],
-		env: { PEAR_API_KEY: process.env.PEAR_API_KEY ?? "" },
+		env: { PEAR_API_KEY: process.env.PEAR_API_KEY ?? "", PEAR_ADDRESS: process.env.PEAR_ADDRESS ?? "" },
 	}),
 });
 

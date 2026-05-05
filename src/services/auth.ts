@@ -25,6 +25,7 @@ export interface JwtTokens {
 
 export interface MintJwtParams {
 	apiKey: string;
+	address: string;
 	baseUrl: string;
 	clientId: string;
 	timeoutMs: number;
@@ -33,6 +34,7 @@ export interface MintJwtParams {
 export async function mintJwt(params: MintJwtParams): Promise<JwtTokens> {
 	const body = {
 		method: "api_key",
+		address: params.address,
 		clientId: params.clientId,
 		details: { apiKey: params.apiKey },
 	};

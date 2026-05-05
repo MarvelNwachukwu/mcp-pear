@@ -95,8 +95,10 @@ export class PearClient {
 			}
 		}
 		const apiKey = this.config.requireApiKey("authenticated_tool");
+		const address = this.config.requireAddress("authenticated_tool");
 		return await mintJwt({
 			apiKey,
+			address,
 			baseUrl: this.config.baseUrl,
 			clientId: this.config.clientId,
 			timeoutMs: this.config.timeoutMs,

@@ -11,6 +11,7 @@ describe("config", () => {
 	beforeEach(() => {
 		process.env = { ...ORIGINAL_ENV };
 		process.env.PEAR_API_KEY = undefined;
+		process.env.PEAR_ADDRESS = undefined;
 		process.env.PEAR_API_BASE_URL = undefined;
 		process.env.PEAR_API_TIMEOUT_MS = undefined;
 		process.env.PEAR_CLIENT_ID = undefined;
@@ -55,5 +56,25 @@ describe("config", () => {
 	it("invalid PEAR_API_TIMEOUT_MS falls back to default", () => {
 		process.env.PEAR_API_TIMEOUT_MS = "not-a-number";
 		expect(getConfig().timeoutMs).toBe(10000);
+	});
+
+	it("requireAddress throws ConfigError when address absent", () => {
+		expect(() => getConfig().requireAddress("get_open_positions")).toThrow(
+			ConfigError,
+		);
+	});
+
+	it("requireAddress returns address when present", () => {
+		process.env.PEAR_ADDRESS = "0x1234567890123456789012345678901234567890";
+		expect(getConfig().requireAddress("any_tool")).toBe(
+			"0x1234567890123456789012345678901234567890",
+		);
+	});
+
+	it("reads PEAR_ADDRESS from env", () => {
+		process.env.PEAR_ADDRESS = "0x1234567890123456789012345678901234567890";
+		expect(getConfig().address).toBe(
+			"0x1234567890123456789012345678901234567890",
+		);
 	});
 });

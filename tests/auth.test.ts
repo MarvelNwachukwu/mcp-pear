@@ -29,6 +29,7 @@ describe("mintJwt", () => {
 		});
 		const result = await mintJwt({
 			apiKey: "key-1",
+			address: "0x1234567890123456789012345678901234567890",
 			baseUrl: "https://e.com",
 			clientId: "APITRADER",
 			timeoutMs: 5000,
@@ -42,6 +43,7 @@ describe("mintJwt", () => {
 		expect(init.headers).toMatchObject({ "content-type": "application/json" });
 		expect(JSON.parse(init.body)).toEqual({
 			method: "api_key",
+			address: "0x1234567890123456789012345678901234567890",
 			clientId: "APITRADER",
 			details: { apiKey: "key-1" },
 		});
@@ -58,6 +60,7 @@ describe("mintJwt", () => {
 		await expect(
 			mintJwt({
 				apiKey: "bad",
+				address: "0x1234567890123456789012345678901234567890",
 				baseUrl: "https://e.com",
 				clientId: "APITRADER",
 				timeoutMs: 5000,
@@ -106,7 +109,11 @@ describe("PearClient.ensureJwt ladder", () => {
 	beforeEach(() => {
 		fetchMockL.mockReset();
 		vi.stubGlobal("fetch", fetchMockL);
-		process.env = { ...ORIGINAL_ENV, PEAR_API_KEY: "key-1" };
+		process.env = {
+			...ORIGINAL_ENV,
+			PEAR_API_KEY: "key-1",
+			PEAR_ADDRESS: "0x1234567890123456789012345678901234567890",
+		};
 		resetConfigForTests();
 		PearClient.resetForTests();
 	});

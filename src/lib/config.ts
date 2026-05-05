@@ -7,10 +7,12 @@ export class ConfigError extends Error {
 
 export interface PearConfig {
 	apiKey: string | undefined;
+	address: string | undefined;
 	baseUrl: string;
 	timeoutMs: number;
 	clientId: string;
 	requireApiKey(toolName: string): string;
+	requireAddress(toolName: string): string;
 }
 
 let cached: PearConfig | undefined;
@@ -18,6 +20,7 @@ let cached: PearConfig | undefined;
 export function getConfig(): PearConfig {
 	if (cached) return cached;
 	const apiKey = process.env.PEAR_API_KEY?.trim() || undefined;
+	const address = process.env.PEAR_ADDRESS?.trim() || undefined;
 	const baseUrl =
 		process.env.PEAR_API_BASE_URL?.trim() || "https://hl-v2.pearprotocol.io";
 	const parsedTimeout = Number(process.env.PEAR_API_TIMEOUT_MS);
@@ -27,6 +30,7 @@ export function getConfig(): PearConfig {
 
 	cached = {
 		apiKey,
+		address,
 		baseUrl,
 		timeoutMs,
 		clientId,
@@ -37,6 +41,14 @@ export function getConfig(): PearConfig {
 				);
 			}
 			return apiKey;
+		},
+		requireAddress(toolName: string) {
+			if (!address) {
+				throw new ConfigError(
+					`PEAR_ADDRESS env var is required for \`${toolName}\`. Set it to the wallet address bound to your PEAR_API_KEY and restart.`,
+				);
+			}
+			return address;
 		},
 	};
 	return cached;

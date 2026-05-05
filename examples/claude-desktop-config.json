@@ -4,7 +4,8 @@
 			"command": "npx",
 			"args": ["-y", "@marvelcodes/mcp-pear"],
 			"env": {
-				"PEAR_API_KEY": "your-pear-api-key-here"
+				"PEAR_API_KEY": "your-pear-api-key-here",
+				"PEAR_ADDRESS": "0xYourWalletAddress"
 			}
 		}
 	}
