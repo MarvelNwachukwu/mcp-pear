@@ -1,52 +1,53 @@
 {
-  "name": "@PLACEHOLDER_HANDLE/mcp-pear",
-  "version": "0.1.0",
-  "description": "MCP server exposing Pear Protocol's read API to AI agents",
-  "type": "module",
-  "main": "dist/index.js",
-  "bin": {
-    "mcp-pear": "dist/index.js"
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "tsc && shx chmod +x dist/index.js",
-    "watch": "tsc --watch",
-    "start": "node dist/index.js",
-    "format": "biome format . --write",
-    "lint": "biome check .",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "publish-packages": "pnpm run build && changeset publish",
-    "prepare": "husky"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "keywords": ["mcp", "pear-protocol", "hyperliquid", "trading", "ai"],
-  "license": "MIT",
-  "dependencies": {
-    "dedent": "^1.5.3",
-    "fastmcp": "^3.0.0",
-    "zod": "^3.25.0"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^1.9.0",
-    "@changesets/cli": "^2.27.0",
-    "@types/node": "^22.0.0",
-    "husky": "^9.1.0",
-    "lint-staged": "^15.2.0",
-    "shx": "^0.3.4",
-    "tsx": "^4.19.0",
-    "typescript": "^5.6.0",
-    "vitest": "^2.1.0",
-    "zod-to-json-schema": "^3.23.0"
-  },
-  "lint-staged": {
-    "*.{ts,json}": "biome check --write"
-  },
-  "engines": {
-    "node": ">=22"
-  }
+	"name": "@PLACEHOLDER_HANDLE/mcp-pear",
+	"version": "0.1.0",
+	"description": "MCP server exposing Pear Protocol's read API to AI agents",
+	"type": "module",
+	"main": "dist/index.js",
+	"bin": {
+		"mcp-pear": "dist/index.js"
+	},
+	"files": ["dist"],
+	"scripts": {
+		"build": "tsc && shx chmod +x dist/index.js",
+		"watch": "tsc --watch",
+		"start": "node dist/index.js",
+		"format": "biome format . --write",
+		"lint": "biome check .",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"publish-packages": "pnpm run build && changeset publish",
+		"prepare": "husky"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"keywords": ["mcp", "pear-protocol", "hyperliquid", "trading", "ai"],
+	"license": "MIT",
+	"dependencies": {
+		"dedent": "^1.5.3",
+		"fastmcp": "^3.0.0",
+		"zod": "^3.25.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.0",
+		"@changesets/cli": "^2.27.0",
+		"@types/node": "^22.0.0",
+		"husky": "^9.1.0",
+		"lint-staged": "^15.2.0",
+		"shx": "^0.3.4",
+		"tsx": "^4.19.0",
+		"typescript": "^5.6.0",
+		"vitest": "^2.1.0",
+		"zod-to-json-schema": "^3.23.0"
+	},
+	"lint-staged": {
+		"*.{ts,json}": "biome check --write"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": ["@biomejs/biome", "esbuild"]
+	}
 }
