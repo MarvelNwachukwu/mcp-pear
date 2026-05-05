@@ -20,11 +20,18 @@ These were confirmed by reading docs.pearprotocol.io and probing the live API on
 
 **Base URL:** `https://hl-v2.pearprotocol.io`. (`api.pearprotocol.io` exists as a separate host with a different schema; we do **not** use it.)
 
-**Auth:** `Authorization: Bearer <accessToken>`. The access token is obtained by exchanging an API key (or an EIP-712 wallet signature) at `POST /auth/login`:
+**Auth:** `Authorization: Bearer <accessToken>`. mcp-pear supports three auth modes (see §10):
+
+1. **JWT pass-through** — caller mints the JWT externally (e.g. Privy → Pear `/auth/login`), passes it via `PEAR_JWT`. mcp-pear treats it as opaque.
+2. **API key + wallet address** — caller provides `PEAR_API_KEY` + `PEAR_ADDRESS`; mcp-pear mints the JWT by calling `POST /auth/login`.
+3. **Public-only** — no auth env vars set; only the four public tools work.
+
+The `POST /auth/login` body for mode 2 (per OpenAPI spec, all four fields required at top level):
 
 ```json
 {
   "method": "api_key",
+  "address": "<PEAR_ADDRESS>",
   "clientId": "APITRADER",
   "details": { "apiKey": "<PEAR_API_KEY>" }
 }
@@ -49,9 +56,9 @@ Response: `{ accessToken, refreshToken, tokenType, expiresIn, address, clientId 
 
 **Endpoints that do NOT exist** (despite appearing in the original scope draft): `/market-data/pair-ratio`, `/market-data/candle`, `/market-data/overview`, `/market-data/asset-context`. The entire `/market-data/*` namespace returns 404 on both `hl-v2.pearprotocol.io` and `api.pearprotocol.io`. v0.1 substitutes `list_markets`, `get_active_markets`, and a synthesized `get_pair_ratio` (which filters `/markets`). Candles have no public source and are deferred to v0.2 (potential synthesis from Hyperliquid's `candleSnapshot`).
 
-### Known unknown
+### Resolved: address-in-login
 
-The docs do not confirm whether `POST /auth/login` with `method: "api_key"` requires the `address` field in the body (it's required for `method: "eip712"`). Plan: send without `address` first; if the API returns 400, add it. One-line fix during implementation step 5 (live smoke test).
+The OpenAPI spec at `docs.pearprotocol.io/api-integration/api-specification/authentication.md` confirms `address` is required at the top level of the `POST /auth/login` body for all auth methods including `api_key`. mcp-pear sends it from the `PEAR_ADDRESS` env var. The original v0.1 plan flagged this as a known unknown; it was resolved during implementation when the OpenAPI was inspected.
 
 ---
 
@@ -155,13 +162,21 @@ class PearClient {
 }
 ```
 
+On construction, the client seeds `accessToken` from `config.jwt` and `refreshToken` from `config.refreshToken` (if those env vars were set). This enables JWT pass-through mode (§10) without changing the ladder.
+
 ### `ensureJwt()` ladder
 
 Tries the cheapest path first, falls through on failure:
 
-1. **Cached** — if `accessToken` is set, return it.
+1. **Cached** — if `accessToken` is set, return it. (In JWT pass-through mode, this is the steady-state path: the externally-minted JWT is used directly until it expires.)
 2. **Refresh** — if `refreshToken` is set, call `refreshJwt(refreshToken, baseUrl)`. On success, store rotated tokens and return the new access token. On failure, fall through.
-3. **Re-mint** — call `mintJwt(config.apiKey, baseUrl, clientId)`. Throws `ConfigError` if `PEAR_API_KEY` is missing. Stores both tokens, returns access token.
+3. **Re-mint** — call `mintJwt(config.apiKey, config.address, baseUrl, clientId)`. Throws `ConfigError` if `PEAR_API_KEY` or `PEAR_ADDRESS` is missing. Stores both tokens, returns access token.
+
+### Behavior by auth mode
+
+- **JWT pass-through (orchestrator-managed)** — typical flow: ladder hits step 1 indefinitely. On 401 mid-session: ladder falls to step 2 if `PEAR_REFRESH_TOKEN` is set, else step 3 if API key + address are also set, else throws `ConfigError("JWT expired; the orchestrator must mint a new one and restart mcp-pear.")`.
+- **API key + address** — first call hits step 3 (mint), subsequent calls hit step 1 until 401, then step 2 (refresh), then step 3 again if refresh fails.
+- **Public-only** — `ensureJwt()` is never called; only `publicFetch()` paths run.
 
 ### `authedFetch<T>(path, init, schema)`
 
@@ -198,7 +213,7 @@ Retry state lives entirely in `http.ts` so it's reusable across `mintJwt`, `refr
 
 Two custom error classes:
 
-- `ConfigError(message)` — thrown from `config.ts` / `auth.ts` when an authenticated tool is called without `PEAR_API_KEY` set. Surfaces a clear "set this env var and restart your MCP client" message.
+- `ConfigError(message)` — thrown from `config.ts` / `auth.ts` when an authenticated tool is called but the configured auth mode is incomplete (e.g. `PEAR_API_KEY` set but `PEAR_ADDRESS` missing; or pass-through mode's JWT expired and no refresh token / API key fallback is configured). Surfaces a clear "set this env var and restart" message.
 - `HttpError(status, message, body?)` — thrown from `http.ts` for any non-2xx. Carries the parsed body when available so caller can inspect `body.message`.
 
 ### How tools handle errors
@@ -207,8 +222,10 @@ Tools `try`/`catch` and **return error strings** rather than throwing (kalshi/op
 
 | Error | Returned string |
 |---|---|
-| `ConfigError` | `PEAR_API_KEY env var is required for \`<tool_name>\`. Set it in your MCP client config and restart.` |
-| `HttpError(401)` after retry | `Authentication failed (HTTP 401). Verify PEAR_API_KEY is valid and try again.` |
+| `ConfigError` (no auth mode) | `PEAR_API_KEY env var is required for \`<tool_name>\`. Set it in your MCP client config and restart.` |
+| `ConfigError` (api-key mode missing address) | `PEAR_ADDRESS env var is required for \`<tool_name>\`. Set it to the wallet address bound to your PEAR_API_KEY and restart.` |
+| `ConfigError` (pass-through JWT expired, no fallback) | `JWT expired; the orchestrator must mint a new one and restart mcp-pear.` |
+| `HttpError(401)` after retry | `Authentication failed (HTTP 401). Verify PEAR_API_KEY (or PEAR_JWT) is valid and try again.` |
 | `HttpError(429)` after retries exhausted | `Pear API rate limit exceeded. Try again in a moment.` (includes Retry-After if present) |
 | `HttpError(<status>)` other | `Pear API error (HTTP <status>) on <path>: <body.message>` |
 | `AbortError` (timeout) | `Request timed out after <ms>ms. Increase PEAR_API_TIMEOUT_MS or check network.` |
@@ -287,16 +304,41 @@ For tools that return arrays (positions, orders, trade history), the summary may
 
 ## 10. Configuration
 
-`.env.example`:
+Three auth modes, evaluated in priority order at first authenticated tool call.
+
+### Mode 1 — JWT pass-through (recommended for multi-tenant orchestrators like Telegram bots)
+
+The caller mints the JWT externally (via Privy, EIP-712, or any flow Pear supports) and injects it via env. mcp-pear treats the JWT as an opaque bearer token and never calls `/auth/login` itself.
 
 ```
-PEAR_API_KEY=          # required for authenticated tools (5–10)
-PEAR_API_BASE_URL=https://hl-v2.pearprotocol.io
-PEAR_API_TIMEOUT_MS=10000
-PEAR_CLIENT_ID=APITRADER
+PEAR_JWT=                  # if set, used directly. PEAR_API_KEY / PEAR_ADDRESS are ignored.
+PEAR_REFRESH_TOKEN=        # optional. Lets mcp-pear self-refresh once if PEAR_JWT expires mid-session.
 ```
 
-`config.ts` validates only at use site, not at startup. Public-only sessions (e.g. someone running `get_health` and `list_markets` without an API key) work without `PEAR_API_KEY`.
+When `PEAR_JWT` expires and no refresh token is available, authenticated tools surface `JWT expired; the orchestrator must mint a new one and restart mcp-pear.` The orchestrator (e.g. Telegram bot) is responsible for re-minting and respawning the subprocess.
+
+### Mode 2 — API key + wallet address (single-user / Claude Desktop / power users)
+
+mcp-pear mints the JWT itself via `POST /auth/login`. Both fields required because the OpenAPI spec requires `address` in the request body alongside the API key.
+
+```
+PEAR_API_KEY=              # the user's Pear API key
+PEAR_ADDRESS=              # the wallet address bound to the API key (0x...)
+```
+
+### Public-only mode (no auth)
+
+If neither mode is configured, the four public tools still work (`get_health`, `list_markets`, `get_active_markets`, `get_pair_ratio`). Authenticated tools throw `ConfigError` at call time (not at startup), naming which env var is missing.
+
+### Common settings
+
+```
+PEAR_API_BASE_URL=https://hl-v2.pearprotocol.io   # default
+PEAR_API_TIMEOUT_MS=10000                         # default
+PEAR_CLIENT_ID=APITRADER                          # default; sent to /auth/login
+```
+
+`config.ts` validates only at use site, not at startup, so public-only sessions don't need any auth env vars.
 
 ---
 
