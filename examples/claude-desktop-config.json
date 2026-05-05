@@ -1,0 +1,11 @@
+{
+	"mcpServers": {
+		"pear": {
+			"command": "npx",
+			"args": ["-y", "@PLACEHOLDER_HANDLE/mcp-pear"],
+			"env": {
+				"PEAR_API_KEY": "your-pear-api-key-here"
+			}
+		}
+	}
+}
