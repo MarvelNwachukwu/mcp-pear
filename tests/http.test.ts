@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { HttpError, fetchJson } from "../src/lib/http.js";
+import { HttpError, fetchJson, fetchJsonWithRetry } from "../src/lib/http.js";
 
 describe("HttpError", () => {
 	it("captures status, message, body, path", () => {
@@ -94,5 +94,157 @@ describe("fetchJson", () => {
 		await expect(
 			fetchJson("https://example.com/slow", { timeoutMs: 10 } as never),
 		).rejects.toThrow();
+	});
+});
+
+describe("fetchJsonWithRetry", () => {
+	const fetchMock = vi.fn();
+	beforeEach(() => {
+		fetchMock.mockReset();
+		vi.stubGlobal("fetch", fetchMock);
+	});
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it("succeeds on first attempt", async () => {
+		fetchMock.mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => ({ ok: true }),
+		});
+		const result = await fetchJsonWithRetry("https://e.com/x", {
+			timeoutMs: 100,
+		});
+		expect(result).toEqual({ ok: true });
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+	});
+
+	it("retries on 429 then succeeds", async () => {
+		fetchMock
+			.mockResolvedValueOnce({
+				ok: false,
+				status: 429,
+				statusText: "Too Many Requests",
+				json: async () => ({ message: "slow" }),
+				headers: new Map(),
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ ok: true }),
+			});
+		const result = await fetchJsonWithRetry(
+			"https://e.com/x",
+			{ timeoutMs: 100 },
+			undefined,
+			{ maxRetries: 3, baseDelayMs: 1, jitterMs: 0 },
+		);
+		expect(result).toEqual({ ok: true });
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+	});
+
+	it("retries on 500 then succeeds", async () => {
+		fetchMock
+			.mockResolvedValueOnce({
+				ok: false,
+				status: 500,
+				statusText: "Server Error",
+				json: async () => ({ message: "boom" }),
+				headers: new Map(),
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ ok: true }),
+			});
+		const result = await fetchJsonWithRetry(
+			"https://e.com/x",
+			{ timeoutMs: 100 },
+			undefined,
+			{ maxRetries: 3, baseDelayMs: 1, jitterMs: 0 },
+		);
+		expect(result).toEqual({ ok: true });
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+	});
+
+	it("does NOT retry on 400", async () => {
+		fetchMock.mockResolvedValue({
+			ok: false,
+			status: 400,
+			statusText: "Bad Request",
+			json: async () => ({ message: "bad" }),
+			headers: new Map(),
+		});
+		await expect(
+			fetchJsonWithRetry("https://e.com/x", { timeoutMs: 100 }, undefined, {
+				maxRetries: 3,
+				baseDelayMs: 1,
+				jitterMs: 0,
+			}),
+		).rejects.toMatchObject({ status: 400 });
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+	});
+
+	it("does NOT retry on 401", async () => {
+		fetchMock.mockResolvedValue({
+			ok: false,
+			status: 401,
+			statusText: "Unauthorized",
+			json: async () => ({ message: "no" }),
+			headers: new Map(),
+		});
+		await expect(
+			fetchJsonWithRetry("https://e.com/x", { timeoutMs: 100 }, undefined, {
+				maxRetries: 3,
+				baseDelayMs: 1,
+				jitterMs: 0,
+			}),
+		).rejects.toMatchObject({ status: 401 });
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+	});
+
+	it("exhausts retries and surfaces last error", async () => {
+		fetchMock.mockResolvedValue({
+			ok: false,
+			status: 503,
+			statusText: "Unavailable",
+			json: async () => ({ message: "down" }),
+			headers: new Map(),
+		});
+		await expect(
+			fetchJsonWithRetry("https://e.com/x", { timeoutMs: 100 }, undefined, {
+				maxRetries: 2,
+				baseDelayMs: 1,
+				jitterMs: 0,
+			}),
+		).rejects.toMatchObject({ status: 503 });
+		expect(fetchMock).toHaveBeenCalledTimes(3); // 1 initial + 2 retries
+	});
+
+	it("retries on AbortError (timeout)", async () => {
+		fetchMock
+			.mockImplementationOnce(
+				(_url, init: RequestInit) =>
+					new Promise((_, reject) => {
+						init.signal?.addEventListener("abort", () =>
+							reject(
+								Object.assign(new Error("timeout"), { name: "AbortError" }),
+							),
+						);
+					}),
+			)
+			.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ ok: true }),
+			});
+		const result = await fetchJsonWithRetry(
+			"https://e.com/x",
+			{ timeoutMs: 5 },
+			undefined,
+			{ maxRetries: 2, baseDelayMs: 1, jitterMs: 0 },
+		);
+		expect(result).toEqual({ ok: true });
 	});
 });
