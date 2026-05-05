@@ -12,5 +12,6 @@ server.addTool(tools.getHealthTool);
 server.addTool(tools.listMarketsTool);
 server.addTool(tools.getActiveMarketsTool);
 server.addTool(tools.getPairRatioTool);
+server.addTool(tools.getAccountSummaryTool);
 
 await server.start({ transportType: "stdio" });
