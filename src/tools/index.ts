@@ -1,6 +1,8 @@
 export { getAccountSummaryTool } from "./get-account-summary.js";
 export { getActiveMarketsTool } from "./get-active-markets.js";
 export { getHealthTool } from "./get-health.js";
+export { getOpenOrdersTool } from "./get-open-orders.js";
 export { getOpenPositionsTool } from "./get-open-positions.js";
 export { getPairRatioTool } from "./get-pair-ratio.js";
+export { getTwapOrdersTool } from "./get-twap-orders.js";
 export { listMarketsTool } from "./list-markets.js";
