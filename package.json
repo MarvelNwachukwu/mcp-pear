@@ -1,5 +1,5 @@
 {
-	"name": "@PLACEHOLDER_HANDLE/mcp-pear",
+	"name": "@marvelcodes/mcp-pear",
 	"version": "0.1.0",
 	"description": "MCP server exposing Pear Protocol's read API to AI agents",
 	"type": "module",

@@ -1,7 +1,7 @@
 # mcp-pear
 
-[![npm](https://img.shields.io/npm/v/@PLACEHOLDER_HANDLE/mcp-pear.svg)](https://www.npmjs.com/package/@PLACEHOLDER_HANDLE/mcp-pear)
-[![CI](https://github.com/PLACEHOLDER_GH/mcp-pear/actions/workflows/push.yml/badge.svg)](https://github.com/PLACEHOLDER_GH/mcp-pear/actions)
+[![npm](https://img.shields.io/npm/v/@marvelcodes/mcp-pear.svg)](https://www.npmjs.com/package/@marvelcodes/mcp-pear)
+[![CI](https://github.com/marvelcodes/mcp-pear/actions/workflows/push.yml/badge.svg)](https://github.com/marvelcodes/mcp-pear/actions)
 
 A read-only Model Context Protocol (MCP) server exposing [Pear Protocol](https://pearprotocol.io)'s trading API to AI agents. Use it to let Claude (or any MCP-compatible agent) browse markets, check the ratio of any pair, and read your account/positions/orders/trade-history/portfolio.
 
@@ -28,10 +28,10 @@ Pear Protocol is a Hyperliquid-backed perpetuals platform for trading **pair mar
 
 ```bash
 # Run directly
-npx -y @PLACEHOLDER_HANDLE/mcp-pear
+npx -y @marvelcodes/mcp-pear
 
 # Or install globally
-pnpm install -g @PLACEHOLDER_HANDLE/mcp-pear
+pnpm install -g @marvelcodes/mcp-pear
 mcp-pear
 ```
 
@@ -53,7 +53,7 @@ Add to your `claude_desktop_config.json`:
   "mcpServers": {
     "pear": {
       "command": "npx",
-      "args": ["-y", "@PLACEHOLDER_HANDLE/mcp-pear"],
+      "args": ["-y", "@marvelcodes/mcp-pear"],
       "env": {
         "PEAR_API_KEY": "your-pear-api-key-here"
       }
@@ -72,7 +72,7 @@ import { McpToolset, StdioTransport } from "@iqai/adk";
 const pearTools = new McpToolset({
 	transport: new StdioTransport({
 		command: "npx",
-		args: ["-y", "@PLACEHOLDER_HANDLE/mcp-pear"],
+		args: ["-y", "@marvelcodes/mcp-pear"],
 		env: { PEAR_API_KEY: process.env.PEAR_API_KEY ?? "" },
 	}),
 });

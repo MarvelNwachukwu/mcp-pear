@@ -5,7 +5,7 @@ import { McpToolset, StdioTransport } from "@iqai/adk";
 const pearTools = new McpToolset({
 	transport: new StdioTransport({
 		command: "npx",
-		args: ["-y", "@PLACEHOLDER_HANDLE/mcp-pear"],
+		args: ["-y", "@marvelcodes/mcp-pear"],
 		env: { PEAR_API_KEY: process.env.PEAR_API_KEY ?? "" },
 	}),
 });
