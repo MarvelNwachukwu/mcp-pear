@@ -37,13 +37,42 @@ mcp-pear
 
 ## Configuration
 
-| Env var | Required | Default | Description |
-|---|---|---|---|
-| `PEAR_API_KEY` | for auth tools | — | Your Pear API key. Public tools (1–4) work without it. |
-| `PEAR_ADDRESS` | for auth tools | — | Wallet address bound to your `PEAR_API_KEY`. |
-| `PEAR_API_BASE_URL` | no | `https://hl-v2.pearprotocol.io` | Pear API host. |
-| `PEAR_API_TIMEOUT_MS` | no | `10000` | Per-request timeout. |
-| `PEAR_CLIENT_ID` | no | `APITRADER` | Client identifier sent to `/auth/login`. |
+mcp-pear supports three auth modes. The first one whose env vars are set wins at first authenticated tool call.
+
+### Mode 1 — JWT pass-through (recommended for multi-tenant orchestrators)
+
+For Telegram bots and other orchestrators that mint JWTs externally (e.g. via Privy, EIP-712, or any flow Pear supports). mcp-pear treats the JWT as opaque and never calls `/auth/login`.
+
+| Env var | Required | Description |
+|---|---|---|
+| `PEAR_JWT` | yes | Pre-minted access token. When set, PEAR_API_KEY/PEAR_ADDRESS are ignored. |
+| `PEAR_REFRESH_TOKEN` | no | If set, mcp-pear self-refreshes once when PEAR_JWT expires mid-session. Otherwise the orchestrator must re-mint and respawn the subprocess. |
+
+When `PEAR_JWT` expires and no refresh token is available, authenticated tools return:
+> `JWT expired; the orchestrator must mint a new one and restart mcp-pear.`
+
+See [`examples/telegram-bot-usage.ts`](./examples/telegram-bot-usage.ts) for the orchestrator pattern.
+
+### Mode 2 — API key + wallet address (single-user / Claude Desktop)
+
+| Env var | Required | Description |
+|---|---|---|
+| `PEAR_API_KEY` | for auth tools | Your Pear API key. |
+| `PEAR_ADDRESS` | for auth tools | The wallet address bound to the API key (`0x...`). |
+
+mcp-pear mints the JWT itself by calling `POST /auth/login`. Both fields are required because the OpenAPI spec requires `address` in the request body.
+
+### Public-only mode (no auth)
+
+The four public tools (`get_health`, `list_markets`, `get_active_markets`, `get_pair_ratio`) work without any auth env vars. Authenticated tools return a `ConfigError` describing which env var is missing.
+
+### Common settings (optional)
+
+| Env var | Default | Description |
+|---|---|---|
+| `PEAR_API_BASE_URL` | `https://hl-v2.pearprotocol.io` | Pear API host. |
+| `PEAR_API_TIMEOUT_MS` | `10000` | Per-request timeout. |
+| `PEAR_CLIENT_ID` | `APITRADER` | Client identifier sent to `/auth/login`. |
 
 ## Claude Desktop usage
 
