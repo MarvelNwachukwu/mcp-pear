@@ -45,8 +45,8 @@ For Telegram bots and other orchestrators that mint JWTs externally (e.g. via Pr
 
 | Env var | Required | Description |
 |---|---|---|
-| `PEAR_JWT` | yes | Pre-minted access token. When set, PEAR_API_KEY/PEAR_ADDRESS are ignored. |
-| `PEAR_REFRESH_TOKEN` | no | If set, mcp-pear self-refreshes once when PEAR_JWT expires mid-session. Otherwise the orchestrator must re-mint and respawn the subprocess. |
+| `PEAR_JWT` | yes | Pre-minted access token. When set, used directly. PEAR_API_KEY/PEAR_ADDRESS act as fallback if the JWT expires and no PEAR_REFRESH_TOKEN is configured. |
+| `PEAR_REFRESH_TOKEN` | no | If set, mcp-pear self-refreshes the JWT when it expires mid-session (each refresh rotates the token). Otherwise the orchestrator must re-mint and respawn the subprocess. |
 
 When `PEAR_JWT` expires and no refresh token is available, authenticated tools return:
 > `JWT expired; the orchestrator must mint a new one and restart mcp-pear.`
@@ -205,7 +205,7 @@ PEAR_API_KEY=<real> pnpm test smoke
 ## Roadmap
 
 - **v0.2** — trade execution (open / close / adjust positions, place / cancel orders, leverage, TP/SL), agent wallet creation/approval flow, candle synthesis from Hyperliquid `candleSnapshot`
-- **v0.3** — WebSocket streaming, Telegram bot wrapper (separate repo)
+- **v0.3** — WebSocket streaming for real-time market and position updates
 
 ## Disclaimer
 

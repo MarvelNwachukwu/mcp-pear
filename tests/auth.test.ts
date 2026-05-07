@@ -291,4 +291,36 @@ describe("PearClient with PEAR_JWT (pass-through mode)", () => {
 		const [url] = fetchMockJ.mock.calls[0];
 		expect(url).toContain("/accounts");
 	});
+
+	it("falls through to mint via PEAR_API_KEY when JWT expires and api-key fallback is configured", async () => {
+		process.env.PEAR_API_KEY = "fallback-key";
+		process.env.PEAR_ADDRESS = "0x1234567890123456789012345678901234567890";
+		resetConfigForTests();
+		PearClient.resetForTests();
+
+		// On 401 retry, ensureJwt skips refresh (no refreshToken), skips orchestrator-error
+		// (apiKey is set), and mints via /auth/login.
+		fetchMockJ.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({
+				accessToken: "minted-AT",
+				refreshToken: "minted-RT",
+			}),
+		});
+
+		const client = PearClient.getInstance();
+		const initial = await client.ensureJwtForTests();
+		expect(initial).toBe("preminted-AT");
+		client.invalidateAccessTokenForTests();
+		const fresh = await client.ensureJwtForTests();
+		expect(fresh).toBe("minted-AT");
+
+		const [url, init] = fetchMockJ.mock.calls[0];
+		expect(url).toContain("/auth/login");
+		const body = JSON.parse(init.body);
+		expect(body.method).toBe("api_key");
+		expect(body.address).toBe("0x1234567890123456789012345678901234567890");
+		expect(body.details.apiKey).toBe("fallback-key");
+	});
 });

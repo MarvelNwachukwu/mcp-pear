@@ -49,7 +49,7 @@ export function spawnMcpPearForUser(creds: UserCredentials) {
 //   await ctx.reply(result.content[0].text);
 //
 // When PEAR_JWT expires:
-//   - If PEAR_REFRESH_TOKEN was provided, mcp-pear self-refreshes once and continues.
+//   - If PEAR_REFRESH_TOKEN was provided, mcp-pear self-refreshes (rotating the token) and continues.
 //   - Otherwise mcp-pear surfaces "JWT expired; the orchestrator must mint a new one
 //     and restart mcp-pear." — your bot intercepts this, refreshes the user's JWT
 //     via Pear's auth flow, and respawns the subprocess.

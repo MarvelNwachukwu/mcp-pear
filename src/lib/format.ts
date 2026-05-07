@@ -29,7 +29,7 @@ export function formatErrorMessage(err: unknown): string {
 	}
 	if (err instanceof HttpError) {
 		if (err.status === 401) {
-			return "Authentication failed (HTTP 401). Verify PEAR_API_KEY is valid and try again.";
+			return "Authentication failed (HTTP 401). Verify PEAR_API_KEY (or PEAR_JWT) is valid and try again.";
 		}
 		if (err.status === 429) {
 			const retryAfter = (err.body as Record<string, unknown> | undefined)?.[
