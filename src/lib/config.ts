@@ -11,6 +11,8 @@ export interface PearConfig {
 	baseUrl: string;
 	timeoutMs: number;
 	clientId: string;
+	jwt: string | undefined;
+	refreshToken: string | undefined;
 	requireApiKey(toolName: string): string;
 	requireAddress(toolName: string): string;
 }
@@ -27,6 +29,8 @@ export function getConfig(): PearConfig {
 	const timeoutMs =
 		Number.isFinite(parsedTimeout) && parsedTimeout > 0 ? parsedTimeout : 10000;
 	const clientId = process.env.PEAR_CLIENT_ID?.trim() || "APITRADER";
+	const jwt = process.env.PEAR_JWT?.trim() || undefined;
+	const refreshToken = process.env.PEAR_REFRESH_TOKEN?.trim() || undefined;
 
 	cached = {
 		apiKey,
@@ -34,6 +38,8 @@ export function getConfig(): PearConfig {
 		baseUrl,
 		timeoutMs,
 		clientId,
+		jwt,
+		refreshToken,
 		requireApiKey(toolName: string) {
 			if (!apiKey) {
 				throw new ConfigError(

@@ -15,6 +15,8 @@ describe("config", () => {
 		process.env.PEAR_API_BASE_URL = undefined;
 		process.env.PEAR_API_TIMEOUT_MS = undefined;
 		process.env.PEAR_CLIENT_ID = undefined;
+		process.env.PEAR_JWT = undefined;
+		process.env.PEAR_REFRESH_TOKEN = undefined;
 		resetConfigForTests();
 	});
 	afterEach(() => {
@@ -76,5 +78,21 @@ describe("config", () => {
 		expect(getConfig().address).toBe(
 			"0x1234567890123456789012345678901234567890",
 		);
+	});
+
+	it("reads PEAR_JWT from env", () => {
+		process.env.PEAR_JWT = "preminted-access-token";
+		expect(getConfig().jwt).toBe("preminted-access-token");
+	});
+
+	it("reads PEAR_REFRESH_TOKEN from env", () => {
+		process.env.PEAR_REFRESH_TOKEN = "preminted-refresh-token";
+		expect(getConfig().refreshToken).toBe("preminted-refresh-token");
+	});
+
+	it("jwt and refreshToken default to undefined when env unset", () => {
+		const cfg = getConfig();
+		expect(cfg.jwt).toBeUndefined();
+		expect(cfg.refreshToken).toBeUndefined();
 	});
 });

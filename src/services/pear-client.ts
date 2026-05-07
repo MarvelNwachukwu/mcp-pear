@@ -1,5 +1,5 @@
 import type { ZodType } from "zod";
-import { type PearConfig, getConfig } from "../lib/config.js";
+import { ConfigError, type PearConfig, getConfig } from "../lib/config.js";
 import {
 	type FetchJsonInit,
 	HttpError,
@@ -41,7 +41,10 @@ export class PearClient {
 	private refreshToken: string | null = null;
 	private mintInFlight: Promise<JwtTokens> | undefined;
 
-	private constructor(private readonly config: PearConfig) {}
+	private constructor(private readonly config: PearConfig) {
+		this.accessToken = config.jwt ?? null;
+		this.refreshToken = config.refreshToken ?? null;
+	}
 
 	static getInstance(): PearClient {
 		if (!PearClient.instance) {
@@ -94,11 +97,15 @@ export class PearClient {
 				this.refreshToken = null;
 			}
 		}
+		if (this.config.jwt && !this.config.apiKey) {
+			throw new ConfigError(
+				"JWT expired; the orchestrator must mint a new one and restart mcp-pear.",
+			);
+		}
 		const apiKey = this.config.requireApiKey("authenticated_tool");
-		const address = this.config.requireAddress("authenticated_tool");
 		return await mintJwt({
 			apiKey,
-			address,
+			address: this.config.requireAddress("authenticated_tool"),
 			baseUrl: this.config.baseUrl,
 			clientId: this.config.clientId,
 			timeoutMs: this.config.timeoutMs,

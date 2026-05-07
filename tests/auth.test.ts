@@ -204,3 +204,91 @@ describe("PearClient.ensureJwt ladder", () => {
 		expect(thirdUrl).toContain("/auth/login");
 	});
 });
+
+describe("PearClient with PEAR_JWT (pass-through mode)", () => {
+	const ORIGINAL_ENV = { ...process.env };
+	const fetchMockJ = vi.fn();
+	beforeEach(() => {
+		fetchMockJ.mockReset();
+		vi.stubGlobal("fetch", fetchMockJ);
+		process.env = { ...ORIGINAL_ENV, PEAR_JWT: "preminted-AT" };
+		process.env.PEAR_API_KEY = undefined;
+		process.env.PEAR_ADDRESS = undefined;
+		process.env.PEAR_REFRESH_TOKEN = undefined;
+		resetConfigForTests();
+		PearClient.resetForTests();
+	});
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		process.env = ORIGINAL_ENV;
+		resetConfigForTests();
+		PearClient.resetForTests();
+	});
+
+	it("uses PEAR_JWT directly without minting", async () => {
+		const client = PearClient.getInstance();
+		const token = await client.ensureJwtForTests();
+		expect(token).toBe("preminted-AT");
+		expect(fetchMockJ).not.toHaveBeenCalled();
+	});
+
+	it("refreshes when PEAR_JWT is invalidated and PEAR_REFRESH_TOKEN is set", async () => {
+		process.env.PEAR_REFRESH_TOKEN = "preminted-RT";
+		resetConfigForTests();
+		PearClient.resetForTests();
+
+		fetchMockJ.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({
+				accessToken: "refreshed-AT",
+				refreshToken: "refreshed-RT",
+			}),
+		});
+
+		const client = PearClient.getInstance();
+		const initial = await client.ensureJwtForTests();
+		expect(initial).toBe("preminted-AT");
+		client.invalidateAccessTokenForTests();
+		const fresh = await client.ensureJwtForTests();
+		expect(fresh).toBe("refreshed-AT");
+
+		const [url, init] = fetchMockJ.mock.calls[0];
+		expect(url).toContain("/auth/refresh");
+		expect(JSON.parse(init.body)).toEqual({ refreshToken: "preminted-RT" });
+	});
+
+	it("throws orchestrator error when JWT expires and no fallback configured", async () => {
+		const client = PearClient.getInstance();
+		const initial = await client.ensureJwtForTests();
+		expect(initial).toBe("preminted-AT");
+		client.invalidateAccessTokenForTests();
+		await expect(client.ensureJwtForTests()).rejects.toThrow(
+			/JWT expired.*orchestrator must mint a new one/,
+		);
+		expect(fetchMockJ).not.toHaveBeenCalled();
+	});
+
+	it("surfaces orchestrator ConfigError when authedFetch hits 401 and no fallback", async () => {
+		// First call to /accounts returns 401 (simulates expired JWT mid-session).
+		// authedFetch will null the access token, call ensureJwt() again, and
+		// since no refreshToken / apiKey is configured, acquireTokens throws the
+		// orchestrator ConfigError. The 401 retry path never makes a second request.
+		fetchMockJ.mockResolvedValueOnce({
+			ok: false,
+			status: 401,
+			statusText: "Unauthorized",
+			json: async () => ({ message: "expired" }),
+			headers: new Map(),
+		});
+
+		const client = PearClient.getInstance();
+		await expect(client.getAccountSummary()).rejects.toThrow(
+			/JWT expired.*orchestrator must mint a new one/,
+		);
+		// Only the original /accounts call hit the network — no /auth/login or /auth/refresh.
+		expect(fetchMockJ).toHaveBeenCalledTimes(1);
+		const [url] = fetchMockJ.mock.calls[0];
+		expect(url).toContain("/accounts");
+	});
+});
