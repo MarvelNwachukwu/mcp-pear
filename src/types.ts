@@ -65,7 +65,7 @@ export const AccountSummarySchema = z.object({
 	totalClosedTrades: z.number(),
 	totalTriggerOrderUsdValue: z.number().optional(),
 	totalTwapChunkUsdValue: z.number().optional(),
-	lastSyncedAt: z.number().optional(),
+	lastSyncedAt: z.coerce.number().optional(),
 });
 export type AccountSummary = z.infer<typeof AccountSummarySchema>;
 
