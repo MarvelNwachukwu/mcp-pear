@@ -1,7 +1,7 @@
 # mcp-pear
 
 [![npm](https://img.shields.io/npm/v/@marvelcodes/mcp-pear.svg)](https://www.npmjs.com/package/@marvelcodes/mcp-pear)
-[![CI](https://github.com/marvelcodes/mcp-pear/actions/workflows/push.yml/badge.svg)](https://github.com/marvelcodes/mcp-pear/actions)
+[![CI](https://github.com/MarvelNwachukwu/mcp-pear/actions/workflows/push.yml/badge.svg)](https://github.com/MarvelNwachukwu/mcp-pear/actions)
 
 A read-only Model Context Protocol (MCP) server exposing [Pear Protocol](https://pearprotocol.io)'s trading API to AI agents. Use it to let Claude (or any MCP-compatible agent) browse markets, check the ratio of any pair, and read your account/positions/orders/trade-history/portfolio.
 
