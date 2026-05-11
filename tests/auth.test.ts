@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetConfigForTests } from "../src/lib/config.js";
-import { mintJwt, refreshJwt } from "../src/services/auth.js";
+import {
+	getEip712Message,
+	mintApiKey,
+	mintJwt,
+	mintJwtEip712,
+	refreshJwt,
+} from "../src/services/auth.js";
 import { PearClient } from "../src/services/pear-client.js";
 
 const fetchMock = vi.fn();
@@ -66,6 +72,152 @@ describe("mintJwt", () => {
 				timeoutMs: 5000,
 			}),
 		).rejects.toMatchObject({ status: 401 });
+	});
+});
+
+describe("getEip712Message", () => {
+	beforeEach(() => {
+		fetchMock.mockReset();
+		vi.stubGlobal("fetch", fetchMock);
+	});
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it("calls GET /auth/eip712-message?address=… and returns parsed typed data", async () => {
+		fetchMock.mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => ({
+				domain: { name: "PearProtocol", version: "1", chainId: 998 },
+				types: {
+					EIP712Domain: [{ name: "name", type: "string" }],
+					Login: [],
+				},
+				primaryType: "Login",
+				message: {},
+			}),
+		});
+
+		const result = await getEip712Message({
+			address: "0xeb6E3C2522b78bb0a5c65198eB35566b43171137",
+			baseUrl: "https://hl-v2.pearprotocol.io",
+			timeoutMs: 5000,
+		});
+		expect(result.primaryType).toBe("Login");
+
+		const [url] = fetchMock.mock.calls[0];
+		expect(url).toBe(
+			"https://hl-v2.pearprotocol.io/auth/eip712-message?address=0xeb6E3C2522b78bb0a5c65198eB35566b43171137",
+		);
+	});
+
+	it("surfaces HttpError on 4xx", async () => {
+		fetchMock.mockResolvedValue({
+			ok: false,
+			status: 400,
+			statusText: "Bad Request",
+			json: async () => ({ message: "Invalid address" }),
+			headers: new Map(),
+		});
+		await expect(
+			getEip712Message({
+				address: "0xbad",
+				baseUrl: "https://x",
+				timeoutMs: 5000,
+			}),
+		).rejects.toMatchObject({ status: 400 });
+	});
+});
+
+describe("mintJwtEip712", () => {
+	beforeEach(() => {
+		fetchMock.mockReset();
+		vi.stubGlobal("fetch", fetchMock);
+	});
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it("posts the eip712 login body and parses tokens", async () => {
+		fetchMock.mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => ({
+				accessToken: "jwt-access",
+				refreshToken: "jwt-refresh",
+				expiresIn: 3600,
+			}),
+		});
+
+		const tokens = await mintJwtEip712({
+			address: "0xeb6E3C2522b78bb0a5c65198eB35566b43171137",
+			signature: `0xabc${"0".repeat(127)}`,
+			baseUrl: "https://hl-v2.pearprotocol.io",
+			clientId: "APITRADER",
+			timeoutMs: 5000,
+		});
+
+		expect(tokens.accessToken).toBe("jwt-access");
+		expect(tokens.refreshToken).toBe("jwt-refresh");
+
+		const [url, init] = fetchMock.mock.calls[0];
+		expect(url).toBe("https://hl-v2.pearprotocol.io/auth/login");
+		expect(JSON.parse(init.body)).toEqual({
+			method: "eip712",
+			address: "0xeb6E3C2522b78bb0a5c65198eB35566b43171137",
+			clientId: "APITRADER",
+			details: { signature: `0xabc${"0".repeat(127)}` },
+		});
+	});
+});
+
+describe("mintApiKey", () => {
+	beforeEach(() => {
+		fetchMock.mockReset();
+		vi.stubGlobal("fetch", fetchMock);
+	});
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it("posts to /api-keys with bearer token and optional name", async () => {
+		fetchMock.mockResolvedValue({
+			ok: true,
+			status: 201,
+			json: async () => ({
+				id: "ak_xyz",
+				apiKey: "pk_live_abc",
+				name: "test",
+				createdAt: "2026-05-11T00:00:00Z",
+			}),
+		});
+
+		const result = await mintApiKey({
+			jwt: "jwt-token",
+			name: "test",
+			baseUrl: "https://hl-v2.pearprotocol.io",
+			timeoutMs: 5000,
+		});
+
+		expect(result.id).toBe("ak_xyz");
+		expect(result.apiKey).toBe("pk_live_abc");
+
+		const [url, init] = fetchMock.mock.calls[0];
+		expect(url).toBe("https://hl-v2.pearprotocol.io/api-keys");
+		expect(init.headers).toMatchObject({ Authorization: "Bearer jwt-token" });
+		expect(JSON.parse(init.body)).toEqual({ name: "test" });
+	});
+
+	it("omits name from body when not supplied", async () => {
+		fetchMock.mockResolvedValue({
+			ok: true,
+			status: 201,
+			json: async () => ({ id: "x", apiKey: "y" }),
+		});
+		await mintApiKey({ jwt: "t", baseUrl: "https://x", timeoutMs: 5000 });
+		const [, init] = fetchMock.mock.calls[0];
+		expect(JSON.parse(init.body)).toEqual({});
 	});
 });
 

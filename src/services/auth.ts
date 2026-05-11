@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { fetchJsonWithRetry } from "../lib/http.js";
+import { fetchJson, fetchJsonWithRetry } from "../lib/http.js";
+import {
+	type ApiKeyResponse,
+	ApiKeyResponseSchema,
+	type AuthMessage,
+	AuthMessageSchema,
+} from "../types.js";
 
 const LoginResponseSchema = z.object({
 	accessToken: z.string(),
@@ -77,4 +83,84 @@ export async function refreshJwt(params: RefreshJwtParams): Promise<JwtTokens> {
 		refreshToken: result.refreshToken,
 		expiresIn: result.expiresIn,
 	};
+}
+
+// ---------- Setup CLI endpoints ----------
+
+export interface GetEip712MessageParams {
+	address: string;
+	baseUrl: string;
+	timeoutMs: number;
+}
+
+export async function getEip712Message(
+	params: GetEip712MessageParams,
+): Promise<AuthMessage> {
+	const url = `${params.baseUrl}/auth/eip712-message?address=${encodeURIComponent(params.address)}`;
+	return await fetchJson(
+		url,
+		{ method: "GET", timeoutMs: params.timeoutMs },
+		AuthMessageSchema,
+	);
+}
+
+export interface MintJwtEip712Params {
+	address: string;
+	signature: string;
+	baseUrl: string;
+	clientId: string;
+	timeoutMs: number;
+}
+
+export async function mintJwtEip712(
+	params: MintJwtEip712Params,
+): Promise<JwtTokens> {
+	const body = {
+		method: "eip712",
+		address: params.address,
+		clientId: params.clientId,
+		details: { signature: params.signature },
+	};
+	const result = await fetchJsonWithRetry(
+		`${params.baseUrl}/auth/login`,
+		{
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify(body),
+			timeoutMs: params.timeoutMs,
+		},
+		LoginResponseSchema,
+	);
+	return {
+		accessToken: result.accessToken,
+		refreshToken: result.refreshToken,
+		expiresIn: result.expiresIn,
+	};
+}
+
+export interface MintApiKeyParams {
+	jwt: string;
+	name?: string;
+	baseUrl: string;
+	timeoutMs: number;
+}
+
+export async function mintApiKey(
+	params: MintApiKeyParams,
+): Promise<ApiKeyResponse> {
+	const body: Record<string, unknown> = {};
+	if (params.name) body.name = params.name;
+	return await fetchJsonWithRetry(
+		`${params.baseUrl}/api-keys`,
+		{
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				Authorization: `Bearer ${params.jwt}`,
+			},
+			body: JSON.stringify(body),
+			timeoutMs: params.timeoutMs,
+		},
+		ApiKeyResponseSchema,
+	);
 }
