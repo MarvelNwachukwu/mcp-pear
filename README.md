@@ -35,6 +35,18 @@ pnpm install -g @marvelcodes/mcp-pear
 mcp-pear
 ```
 
+## Getting started
+
+The fastest way to get authenticated tools working:
+
+```bash
+npx -y @marvelcodes/mcp-pear setup
+```
+
+This walks you through a one-time wallet signature in your browser, mints a Pear API key, and (optionally) writes `PEAR_API_KEY` + `PEAR_ADDRESS` to a `.env` file. Paste the same two values into your Claude Desktop config and restart Claude.
+
+> Already have a JWT from `app.pear.garden`? Skip `setup` and use the **JWT pass-through** mode below.
+
 ## Configuration
 
 mcp-pear supports three auth modes. The first one whose env vars are set wins at first authenticated tool call.
