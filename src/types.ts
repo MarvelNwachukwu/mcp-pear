@@ -150,3 +150,26 @@ export const PortfolioResponseSchema = z
 	})
 	.passthrough();
 export type PortfolioResponse = z.infer<typeof PortfolioResponseSchema>;
+
+// ---------- Setup CLI schemas ----------
+
+export const Eip712TypeFieldSchema = z.object({
+	name: z.string(),
+	type: z.string(),
+});
+
+export const AuthMessageSchema = z.object({
+	domain: z.record(z.unknown()),
+	types: z.record(z.array(Eip712TypeFieldSchema)),
+	primaryType: z.string(),
+	message: z.record(z.unknown()),
+});
+export type AuthMessage = z.infer<typeof AuthMessageSchema>;
+
+export const ApiKeyResponseSchema = z.object({
+	id: z.string(),
+	apiKey: z.string(),
+	name: z.string().optional(),
+	createdAt: z.union([z.string(), z.number()]).optional(),
+});
+export type ApiKeyResponse = z.infer<typeof ApiKeyResponseSchema>;
