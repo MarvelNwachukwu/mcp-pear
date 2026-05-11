@@ -173,3 +173,105 @@ export const ApiKeyResponseSchema = z.object({
 	createdAt: z.union([z.string(), z.number()]).optional(),
 });
 export type ApiKeyResponse = z.infer<typeof ApiKeyResponseSchema>;
+
+// ---------- v0.2 trade execution schemas ----------
+
+export const AgentWalletResponseSchema = z
+	.object({
+		agentWalletAddress: z.string(),
+		message: z.string().optional(),
+	})
+	.passthrough();
+export type AgentWalletResponse = z.infer<typeof AgentWalletResponseSchema>;
+
+export const PairAssetSchema = z.object({
+	asset: z.string(),
+	weight: z.number(),
+});
+export type PairAsset = z.infer<typeof PairAssetSchema>;
+
+export const TpSlThresholdSchema = z.object({
+	type: z.enum(["PRICE", "PERCENTAGE"]),
+	value: z.number(),
+	isTrailing: z.boolean().optional(),
+	trailingDeltaValue: z.number().optional(),
+	trailingActivationValue: z.number().optional(),
+});
+export type TpSlThreshold = z.infer<typeof TpSlThresholdSchema>;
+
+export const CreatePositionResponseSchema = z
+	.object({
+		orderId: z.string(),
+		fills: z.array(z.unknown()).optional(),
+	})
+	.passthrough();
+export type CreatePositionResponse = z.infer<
+	typeof CreatePositionResponseSchema
+>;
+
+export const ClosePositionResponseSchema = z
+	.object({
+		orderId: z.string(),
+		executionTime: z.union([z.string(), z.number()]).optional(),
+		chunksScheduled: z.number().optional(),
+	})
+	.passthrough();
+export type ClosePositionResponse = z.infer<typeof ClosePositionResponseSchema>;
+
+export const CloseAllPositionsResponseSchema = z
+	.object({
+		results: z.array(
+			z
+				.object({
+					positionId: z.string(),
+					success: z.boolean(),
+					orderId: z.string().optional(),
+					error: z.string().optional(),
+				})
+				.passthrough(),
+		),
+	})
+	.passthrough();
+export type CloseAllPositionsResponse = z.infer<
+	typeof CloseAllPositionsResponseSchema
+>;
+
+export const AdjustPositionResponseSchema = z
+	.object({
+		orderId: z.string(),
+		status: z.string().optional(),
+		adjustmentType: z.string().optional(),
+		adjustmentSize: z.number().optional(),
+		newSize: z.number().optional(),
+		executedAt: z.union([z.string(), z.number()]).optional(),
+	})
+	.passthrough();
+export type AdjustPositionResponse = z.infer<
+	typeof AdjustPositionResponseSchema
+>;
+
+export const CancelOrderResponseSchema = z
+	.object({
+		orderId: z.string(),
+		status: z.string().optional(),
+		cancelledAt: z.union([z.string(), z.number()]).optional(),
+	})
+	.passthrough();
+export type CancelOrderResponse = z.infer<typeof CancelOrderResponseSchema>;
+
+export const UpdateRiskParametersResponseSchema = z
+	.object({
+		positionId: z.string(),
+		stopLoss: TpSlThresholdSchema.nullable().optional(),
+		takeProfit: TpSlThresholdSchema.nullable().optional(),
+		updatedAt: z.union([z.string(), z.number()]).optional(),
+	})
+	.passthrough();
+export type UpdateRiskParametersResponse = z.infer<
+	typeof UpdateRiskParametersResponseSchema
+>;
+
+export const AdjustLeverageResponseSchema = z.unknown();
+export type AdjustLeverageResponse = z.infer<
+	typeof AdjustLeverageResponseSchema
+>;

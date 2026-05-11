@@ -8,13 +8,23 @@ import {
 import {
 	AccountSummarySchema,
 	ActiveMarketsResponseSchema,
+	AdjustLeverageResponseSchema,
+	AdjustPositionResponseSchema,
+	AgentWalletResponseSchema,
+	CancelOrderResponseSchema,
+	CloseAllPositionsResponseSchema,
+	ClosePositionResponseSchema,
+	CreatePositionResponseSchema,
 	HealthResponseSchema,
 	MarketsResponseSchema,
 	OpenOrdersResponseSchema,
+	type PairAsset,
 	PortfolioResponseSchema,
 	PositionsResponseSchema,
+	type TpSlThreshold,
 	TradeHistoryResponseSchema,
 	TwapOrdersResponseSchema,
+	UpdateRiskParametersResponseSchema,
 } from "../types.js";
 import { type JwtTokens, mintJwt, refreshJwt } from "./auth.js";
 
@@ -241,4 +251,159 @@ export class PearClient {
 			PortfolioResponseSchema,
 		);
 	}
+
+	// ---------- v0.2 trade-execution endpoints ----------
+
+	getAgentWallet() {
+		return this.authedFetch(
+			"/agentWallet",
+			{ method: "GET" },
+			AgentWalletResponseSchema,
+		);
+	}
+
+	createAgentWallet() {
+		return this.authedFetch(
+			"/agentWallet",
+			{ method: "POST" },
+			AgentWalletResponseSchema,
+		);
+	}
+
+	createPosition(params: CreatePositionParams) {
+		return this.authedFetch(
+			"/positions",
+			{
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify(params),
+			},
+			CreatePositionResponseSchema,
+		);
+	}
+
+	closePosition(positionId: string, body: ClosePositionParams) {
+		return this.authedFetch(
+			`/positions/${encodeURIComponent(positionId)}/close`,
+			{
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify(body),
+			},
+			ClosePositionResponseSchema,
+		);
+	}
+
+	closeAllPositions(body: ClosePositionParams) {
+		return this.authedFetch(
+			"/positions/close-all",
+			{
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify(body),
+			},
+			CloseAllPositionsResponseSchema,
+		);
+	}
+
+	adjustPosition(positionId: string, body: AdjustPositionParams) {
+		return this.authedFetch(
+			`/positions/${encodeURIComponent(positionId)}/adjust`,
+			{
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify(body),
+			},
+			AdjustPositionResponseSchema,
+		);
+	}
+
+	adjustLeverage(positionId: string, leverage: number) {
+		return this.authedFetch(
+			`/positions/${encodeURIComponent(positionId)}/adjust-leverage`,
+			{
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify({ leverage }),
+			},
+			AdjustLeverageResponseSchema,
+		);
+	}
+
+	setRiskParameters(positionId: string, body: RiskParametersParams) {
+		return this.authedFetch(
+			`/positions/${encodeURIComponent(positionId)}/riskParameters`,
+			{
+				method: "PUT",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify(body),
+			},
+			UpdateRiskParametersResponseSchema,
+		);
+	}
+
+	cancelOrder(orderId: string) {
+		return this.authedFetch(
+			`/orders/${encodeURIComponent(orderId)}/cancel`,
+			{ method: "DELETE" },
+			CancelOrderResponseSchema,
+		);
+	}
+
+	cancelTwapOrder(orderId: string) {
+		return this.authedFetch(
+			`/orders/${encodeURIComponent(orderId)}/twap/cancel`,
+			{ method: "POST" },
+			CancelOrderResponseSchema,
+		);
+	}
+}
+
+// ---------- v0.2 request param interfaces ----------
+
+export interface CreatePositionParams {
+	executionType:
+		| "SYNC"
+		| "MARKET"
+		| "TRIGGER"
+		| "TWAP"
+		| "LADDER"
+		| "TP"
+		| "SL";
+	leverage: number;
+	usdValue: number;
+	slippage: number;
+	longAssets: PairAsset[];
+	shortAssets: PairAsset[];
+	triggerValue?: number;
+	triggerType?: "ABOVE" | "BELOW";
+	direction?: "LONG" | "SHORT";
+	twapDuration?: number;
+	twapIntervalSeconds?: number;
+	randomizeExecution?: boolean;
+	ladderConfig?: Record<string, unknown>;
+	stopLoss?: TpSlThreshold | null;
+	takeProfit?: TpSlThreshold | null;
+	referralCode?: string;
+}
+
+export interface ClosePositionParams {
+	executionType: "MARKET" | "TWAP";
+	twapDuration?: number;
+	twapIntervalSeconds?: number;
+	randomizeExecution?: boolean;
+	referralCode?: string;
+}
+
+export interface AdjustPositionParams {
+	adjustmentType: "REDUCE" | "INCREASE";
+	adjustmentSize: number;
+	executionType: "MARKET" | "LIMIT";
+	limitRatio?: number;
+	referralCode?: string;
+}
+
+export interface RiskParametersParams {
+	stopLoss?: TpSlThreshold | null;
+	takeProfit?: TpSlThreshold | null;
 }
