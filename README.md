@@ -214,14 +214,36 @@ Live smoke tests:
 PEAR_API_KEY=<real> pnpm test smoke
 ```
 
+## Trade execution (v0.2 — write tools)
+
+Ten new tools that execute trades on your behalf. **All write tools are off by default.** Set `PEAR_TRADE_ENABLED=true` in your env to enable them. Strict equality on the literal string `"true"` — any other value (including `"True"`, `"1"`, `"yes"`) keeps writes disabled. Pear signs trades server-side via an agent wallet you create; this MCP server never holds private keys.
+
+| Tool | Type | Description |
+|---|---|---|
+| `get_agent_wallet`     | read  | Get the agent wallet Pear uses to sign your trades. |
+| `create_agent_wallet`  | write | Create one. After creation, approve it on Hyperliquid (the response message contains the instructions). |
+| `open_position`        | write | Open a pair position. Supports MARKET / TRIGGER / TWAP / LADDER / TP / SL / SYNC. |
+| `close_position`       | write | Close one position by id (MARKET or TWAP). |
+| `close_all_positions`  | write | Close every open position with one execution type. |
+| `adjust_position`      | write | Reduce / increase position size by 1–100 %. MARKET or LIMIT. |
+| `adjust_leverage`      | write | Set leverage 1–100× on an existing position. Carries liquidation risk. |
+| `set_risk_parameters`  | write | Set or update TP / SL on an existing position. |
+| `cancel_order`         | write | Cancel a pending limit / TP / SL order. |
+| `cancel_twap_order`    | write | Cancel a TWAP order and its remaining chunks. |
+
+| Env var | Default | Description |
+|---|---|---|
+| `PEAR_TRADE_ENABLED` | unset | Set to `"true"` (lowercase, exact) to unlock the write tools. Anything else leaves them disabled and the gate error is returned to the LLM. |
+
+When `PEAR_TRADE_ENABLED=true`, mcp-pear logs `[mcp-pear] PEAR_TRADE_ENABLED=true — trade execution unlocked.` to stderr on startup so operators can see writes are live.
+
 ## Roadmap
 
-- **v0.2** — trade execution (open / close / adjust positions, place / cancel orders, leverage, TP/SL), agent wallet creation/approval flow, candle synthesis from Hyperliquid `candleSnapshot`
-- **v0.3** — WebSocket streaming for real-time market and position updates
+- **v0.3** — WebSocket streaming for real-time market and position updates; spot orders (`POST /orders/spot`); candle synthesis from Hyperliquid `candleSnapshot`.
 
 ## Disclaimer
 
-This project is **not affiliated with Pear Protocol**. It's an independent, experimental wrapper that calls Pear's public API. v0.1 is read-only — it never signs or sends transactions, so there is no custodial risk. Use at your own risk; no warranty is provided.
+This project is **not affiliated with Pear Protocol**. It's an independent, experimental wrapper that calls Pear's public API. v0.1 tools are read-only. v0.2 trade-execution tools are off by default and require explicit operator opt-in; Pear signs server-side, so mcp-pear never handles private keys. Use at your own risk; no warranty is provided.
 
 ## License
 
