@@ -1,20 +1,6 @@
-import { randomBytes } from "node:crypto";
-import { writeFile } from "node:fs/promises";
-import { join } from "node:path";
-import { pathToFileURL } from "node:url";
-
 export interface SignerPageInput {
 	address: string;
 	typedData: unknown;
-}
-
-export interface WriteSignerPageInput extends SignerPageInput {
-	outDir: string;
-}
-
-export interface WriteSignerPageResult {
-	filePath: string;
-	fileUrl: string;
 }
 
 /**
@@ -111,16 +97,6 @@ export function generateSignerHtml(input: SignerPageInput): string {
   });
 </script>
 `;
-}
-
-export async function writeSignerPage(
-	input: WriteSignerPageInput,
-): Promise<WriteSignerPageResult> {
-	const filename = `mcp-pear-sign-${randomBytes(6).toString("hex")}.html`;
-	const filePath = join(input.outDir, filename);
-	const html = generateSignerHtml(input);
-	await writeFile(filePath, html, "utf8");
-	return { filePath, fileUrl: pathToFileURL(filePath).toString() };
 }
 
 function scriptSafeJson(value: unknown): string {

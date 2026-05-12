@@ -1,17 +1,5 @@
-import { mkdirSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { generateSignerHtml, writeSignerPage } from "../src/cli/signer-page.js";
-
-let dir: string;
-beforeEach(() => {
-	dir = join(tmpdir(), `mcp-pear-signer-${Date.now()}-${Math.random()}`);
-	mkdirSync(dir, { recursive: true });
-});
-afterEach(() => {
-	rmSync(dir, { recursive: true, force: true });
-});
+import { describe, expect, it } from "vitest";
+import { generateSignerHtml } from "../src/cli/signer-page.js";
 
 const TYPED_DATA = {
 	domain: { name: "PearProtocol", version: "1", chainId: 998 },
@@ -53,21 +41,6 @@ describe("generateSignerHtml", () => {
 			address: "0x0000000000000000000000000000000000000000",
 			typedData: evil,
 		});
-		// The literal closing-script-tag sequence must not appear inside the data.
 		expect(html).not.toContain("</script><script>alert(1)");
-	});
-});
-
-describe("writeSignerPage", () => {
-	it("writes an HTML file and returns a file:// URL", async () => {
-		const result = await writeSignerPage({
-			outDir: dir,
-			address: "0x0000000000000000000000000000000000000000",
-			typedData: TYPED_DATA,
-		});
-		expect(result.filePath).toMatch(/mcp-pear-sign-.*\.html$/);
-		expect(result.fileUrl).toMatch(/^file:\/\//);
-		const html = readFileSync(result.filePath, "utf8");
-		expect(html).toContain("<!doctype html>");
 	});
 });

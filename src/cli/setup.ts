@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { hostname, tmpdir } from "node:os";
+import { hostname } from "node:os";
 import { cwd, env, exit, stdin, stdout } from "node:process";
 import { createInterface } from "node:readline/promises";
 import { getConfig, resetConfigForTests } from "../lib/config.js";
@@ -12,6 +12,7 @@ import {
 } from "../services/auth.js";
 import { PearClient } from "../services/pear-client.js";
 import { envFileStatus, writeEnvVars } from "./env-writer.js";
+import { serveHtml } from "./local-server.js";
 import {
 	askAddress,
 	askSignature,
@@ -19,10 +20,11 @@ import {
 	askYesNo,
 	defaultTokenName,
 } from "./prompts.js";
-import { writeSignerPage } from "./signer-page.js";
+import { generateSignerHtml } from "./signer-page.js";
 
 export async function runSetup(): Promise<void> {
 	const rl = createInterface({ input: stdin, output: stdout });
+	let serverClose: (() => Promise<void>) | null = null;
 	try {
 		console.log(
 			"mcp-pear setup — mint a Pear Protocol API key for your wallet.\n",
@@ -44,14 +46,12 @@ export async function runSetup(): Promise<void> {
 		console.log("  ✓ EIP-712 typed data received");
 
 		console.log("\nStep 2/4 — sign in your wallet");
-		const { fileUrl } = await writeSignerPage({
-			outDir: tmpdir(),
-			address,
-			typedData,
-		});
-		console.log(`  Opening ${fileUrl}`);
+		const html = generateSignerHtml({ address, typedData });
+		const server = await serveHtml(html);
+		serverClose = server.close;
+		console.log(`  Opening ${server.url}`);
 		console.log("  (If your browser didn't open it, click the link above.)\n");
-		openBrowser(fileUrl);
+		openBrowser(server.url);
 
 		let signature: string;
 		while (true) {
@@ -179,6 +179,7 @@ export async function runSetup(): Promise<void> {
 		console.log("See: https://npmjs.com/package/@marvelcodes/mcp-pear\n");
 	} finally {
 		rl.close();
+		if (serverClose) await serverClose();
 	}
 }
 
