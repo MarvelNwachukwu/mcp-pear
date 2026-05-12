@@ -32,6 +32,16 @@ describe("generateSignerHtml", () => {
 		expect(parsed.primaryType).toBe("Login");
 	});
 
+	it("includes chain-switch logic and hint surface", () => {
+		const html = generateSignerHtml({
+			address: "0x0000000000000000000000000000000000000000",
+			typedData: TYPED_DATA,
+		});
+		expect(html).toContain('id="chain-hint"');
+		expect(html).toContain("wallet_switchEthereumChain");
+		expect(html).toContain("eth_chainId");
+	});
+
 	it("escapes </script> inside typedData to prevent script breakout", () => {
 		const evil = {
 			...TYPED_DATA,

@@ -29,7 +29,8 @@ export function generateSignerHtml(input: SignerPageInput): string {
 
 <h1>Sign in to Pear Protocol</h1>
 <p>Wallet expected: <code>${addressEscaped}</code></p>
-<p class="muted">Connect your wallet, sign the typed data, then copy the signature back to your terminal.</p>
+<p>Target chain: <code id="chain-hint">checking…</code></p>
+<p class="muted">Connect your wallet, sign the typed data, then copy the signature back to your terminal. If your wallet is on a different chain, Sign will prompt you to switch first.</p>
 
 <div class="status" id="status">Ready.</div>
 
@@ -49,6 +50,13 @@ export function generateSignerHtml(input: SignerPageInput): string {
     el.textContent = msg;
     el.className = "status" + (cls ? " " + cls : "");
   };
+
+  (function showChainHint() {
+    const id = Number(typedData.domain && typedData.domain.chainId);
+    if (!id) { $("chain-hint").textContent = "unknown"; return; }
+    const hex = "0x" + id.toString(16);
+    $("chain-hint").textContent = id + " (" + hex + ")";
+  })();
 
   let connectedAddress = null;
 
@@ -71,8 +79,35 @@ export function generateSignerHtml(input: SignerPageInput): string {
     }
   });
 
+  function chainIdHex() {
+    const id = Number(typedData.domain && typedData.domain.chainId);
+    if (!id) return null;
+    return "0x" + id.toString(16);
+  }
+
+  async function ensureChain(targetHex) {
+    const current = await window.ethereum.request({ method: "eth_chainId" });
+    if (current.toLowerCase() === targetHex.toLowerCase()) return;
+    setStatus("Switching wallet to chain " + targetHex + "…", "ok");
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: targetHex }],
+      });
+    } catch (e) {
+      if (e && e.code === 4902) {
+        throw new Error(
+          "Chain " + targetHex + " is not added to your wallet. Add it manually (e.g. Arbitrum One for 0xa4b1) and click Sign again.",
+        );
+      }
+      throw e;
+    }
+  }
+
   $("sign").addEventListener("click", async () => {
     try {
+      const target = chainIdHex();
+      if (target) await ensureChain(target);
       const sig = await window.ethereum.request({
         method: "eth_signTypedData_v4",
         params: [connectedAddress, JSON.stringify(typedData)],
