@@ -112,6 +112,8 @@ export async function getEip712Message(
 export interface MintJwtEip712Params {
 	address: string;
 	signature: string;
+	/** Unix timestamp present in the signed EIP-712 message (typedData.message.timestamp). */
+	timestamp: number;
 	baseUrl: string;
 	clientId: string;
 	timeoutMs: number;
@@ -124,7 +126,7 @@ export async function mintJwtEip712(
 		method: "eip712",
 		address: params.address,
 		clientId: params.clientId,
-		details: { signature: params.signature },
+		details: { signature: params.signature, timestamp: params.timestamp },
 	};
 	const result = await fetchJsonWithRetry(
 		`${params.baseUrl}/auth/login`,

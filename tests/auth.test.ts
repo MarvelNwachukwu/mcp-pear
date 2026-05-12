@@ -157,6 +157,7 @@ describe("mintJwtEip712", () => {
 		const tokens = await mintJwtEip712({
 			address: "0xeb6E3C2522b78bb0a5c65198eB35566b43171137",
 			signature: `0xabc${"0".repeat(127)}`,
+			timestamp: 1778549048,
 			baseUrl: "https://hl-v2.pearprotocol.io",
 			clientId: "APITRADER",
 			timeoutMs: 5000,
@@ -171,7 +172,10 @@ describe("mintJwtEip712", () => {
 			method: "eip712",
 			address: "0xeb6E3C2522b78bb0a5c65198eB35566b43171137",
 			clientId: "APITRADER",
-			details: { signature: `0xabc${"0".repeat(127)}` },
+			details: {
+				signature: `0xabc${"0".repeat(127)}`,
+				timestamp: 1778549048,
+			},
 		});
 	});
 });

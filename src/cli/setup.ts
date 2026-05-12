@@ -88,11 +88,21 @@ export async function runSetup(): Promise<void> {
 		}
 
 		console.log("\nStep 3/4 — exchanging for API key");
+		const timestamp = Number(
+			(typedData.message as { timestamp?: unknown }).timestamp,
+		);
+		if (!Number.isFinite(timestamp)) {
+			console.error(
+				"  ✗ Pear's eip712-message response didn't include a numeric message.timestamp — can't continue.",
+			);
+			exit(1);
+		}
 		let jwt: string;
 		try {
 			const tokens = await mintJwtEip712({
 				address,
 				signature,
+				timestamp,
 				baseUrl,
 				clientId,
 				timeoutMs,
