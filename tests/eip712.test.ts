@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	SignatureMismatchError,
+	normalizeTypedData,
 	recoverEip712Signer,
 } from "../src/lib/eip712.js";
 
@@ -54,5 +55,63 @@ describe("recoverEip712Signer", () => {
 			expected: SIGNER.toLowerCase(),
 		});
 		expect(recovered.toLowerCase()).toBe(SIGNER.toLowerCase());
+	});
+});
+
+describe("normalizeTypedData", () => {
+	it("injects canonical EIP712Domain when missing, in spec order", () => {
+		const td = {
+			domain: {
+				name: "Pear Protocol",
+				version: "1",
+				chainId: 42161,
+				verifyingContract: "0x0000000000000000000000000000000000000001",
+			},
+			types: {
+				Authentication: [
+					{ name: "address", type: "address" },
+					{ name: "clientId", type: "string" },
+					{ name: "timestamp", type: "uint256" },
+					{ name: "action", type: "string" },
+				],
+			},
+			primaryType: "Authentication",
+			message: { foo: "bar" },
+		};
+		const out = normalizeTypedData(td);
+		expect(out.types.EIP712Domain).toEqual([
+			{ name: "name", type: "string" },
+			{ name: "version", type: "string" },
+			{ name: "chainId", type: "uint256" },
+			{ name: "verifyingContract", type: "address" },
+		]);
+		// Original Authentication entry is preserved.
+		expect(out.types.Authentication).toEqual(td.types.Authentication);
+	});
+
+	it("only includes domain fields actually present", () => {
+		const td = {
+			domain: { name: "X", chainId: 1 },
+			types: { M: [] },
+			primaryType: "M",
+			message: {},
+		};
+		const out = normalizeTypedData(td);
+		expect(out.types.EIP712Domain).toEqual([
+			{ name: "name", type: "string" },
+			{ name: "chainId", type: "uint256" },
+		]);
+	});
+
+	it("is a no-op when EIP712Domain is already present", () => {
+		const eip = [{ name: "name", type: "string" }];
+		const td = {
+			domain: { name: "X" },
+			types: { EIP712Domain: eip, M: [] },
+			primaryType: "M",
+			message: {},
+		};
+		const out = normalizeTypedData(td);
+		expect(out.types.EIP712Domain).toBe(eip);
 	});
 });

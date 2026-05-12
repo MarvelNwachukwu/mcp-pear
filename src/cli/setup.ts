@@ -3,7 +3,11 @@ import { hostname } from "node:os";
 import { cwd, env, exit, stdin, stdout } from "node:process";
 import { createInterface } from "node:readline/promises";
 import { getConfig, resetConfigForTests } from "../lib/config.js";
-import { SignatureMismatchError, recoverEip712Signer } from "../lib/eip712.js";
+import {
+	SignatureMismatchError,
+	normalizeTypedData,
+	recoverEip712Signer,
+} from "../lib/eip712.js";
 import { HttpError } from "../lib/http.js";
 import {
 	getEip712Message,
@@ -42,12 +46,15 @@ export async function runSetup(): Promise<void> {
 		);
 
 		console.log("\nStep 1/4 — fetching sign-in message from Pear…");
-		const typedData = await getEip712Message({
+		const rawTypedData = await getEip712Message({
 			address,
 			clientId,
 			baseUrl,
 			timeoutMs,
 		});
+		// Pear omits EIP712Domain from types — inject the canonical entry so
+		// wallet and local recovery hash the same structure.
+		const typedData = normalizeTypedData(rawTypedData);
 		console.log("  ✓ EIP-712 typed data received");
 
 		console.log("\nStep 2/4 — sign in your wallet");
