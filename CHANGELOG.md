@@ -1,5 +1,18 @@
 # @marvelcodes/mcp-pear
 
+## 0.1.3
+
+### Patch Changes
+
+- Fix four `mcp-pear setup` bugs surfaced during live testing:
+
+  - Auto-switch wallet to the typed-data `chainId` (42161 / Arbitrum One) before signing, instead of failing with `chainId should be same as current chainId`. Surfaces the target chain on the signer page.
+  - Pass `clientId` to `GET /auth/eip712-message` so the returned message has `message.clientId` populated; without it wallets rejected the sign with `missing value for field clientId of type string`.
+  - Inject the canonical `EIP712Domain` entry into `types` before signing/recovering. Pear's response omits it; viem and the wallet auto-derive different field orders, so the recovered signer didn't match the actual one.
+  - Include `timestamp` in the `POST /auth/login` eip712 details. Pear requires both `signature` and `timestamp`; we were only sending `signature` and getting 401.
+
+  End-to-end setup now works: typed-data fetch → wallet sign → JWT mint → API key mint → `/accounts` verification → `.env` write.
+
 ## 0.1.2
 
 ### Patch Changes

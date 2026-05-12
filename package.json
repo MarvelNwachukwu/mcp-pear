@@ -1,6 +1,6 @@
 {
 	"name": "@marvelcodes/mcp-pear",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"description": "MCP server exposing Pear Protocol's read API to AI agents",
 	"author": "Marvellous Nwachukwu",
 	"repository": {
