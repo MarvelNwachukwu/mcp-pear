@@ -42,7 +42,12 @@ export async function runSetup(): Promise<void> {
 		);
 
 		console.log("\nStep 1/4 — fetching sign-in message from Pear…");
-		const typedData = await getEip712Message({ address, baseUrl, timeoutMs });
+		const typedData = await getEip712Message({
+			address,
+			clientId,
+			baseUrl,
+			timeoutMs,
+		});
 		console.log("  ✓ EIP-712 typed data received");
 
 		console.log("\nStep 2/4 — sign in your wallet");

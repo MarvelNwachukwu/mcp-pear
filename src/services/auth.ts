@@ -89,6 +89,7 @@ export async function refreshJwt(params: RefreshJwtParams): Promise<JwtTokens> {
 
 export interface GetEip712MessageParams {
 	address: string;
+	clientId: string;
 	baseUrl: string;
 	timeoutMs: number;
 }
@@ -96,7 +97,11 @@ export interface GetEip712MessageParams {
 export async function getEip712Message(
 	params: GetEip712MessageParams,
 ): Promise<AuthMessage> {
-	const url = `${params.baseUrl}/auth/eip712-message?address=${encodeURIComponent(params.address)}`;
+	const qs = new URLSearchParams({
+		address: params.address,
+		clientId: params.clientId,
+	});
+	const url = `${params.baseUrl}/auth/eip712-message?${qs.toString()}`;
 	return await fetchJson(
 		url,
 		{ method: "GET", timeoutMs: params.timeoutMs },

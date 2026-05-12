@@ -108,6 +108,7 @@ export function generateSignerHtml(input: SignerPageInput): string {
     try {
       const target = chainIdHex();
       if (target) await ensureChain(target);
+      setStatus("Awaiting wallet signature…", "ok");
       const sig = await window.ethereum.request({
         method: "eth_signTypedData_v4",
         params: [connectedAddress, JSON.stringify(typedData)],

@@ -101,15 +101,18 @@ describe("getEip712Message", () => {
 
 		const result = await getEip712Message({
 			address: "0xeb6E3C2522b78bb0a5c65198eB35566b43171137",
+			clientId: "APITRADER",
 			baseUrl: "https://hl-v2.pearprotocol.io",
 			timeoutMs: 5000,
 		});
 		expect(result.primaryType).toBe("Login");
 
 		const [url] = fetchMock.mock.calls[0];
-		expect(url).toBe(
-			"https://hl-v2.pearprotocol.io/auth/eip712-message?address=0xeb6E3C2522b78bb0a5c65198eB35566b43171137",
-		);
+		expect(url).toContain("address=0xeb6E3C2522b78bb0a5c65198eB35566b43171137");
+		expect(url).toContain("clientId=APITRADER");
+		expect(
+			url.startsWith("https://hl-v2.pearprotocol.io/auth/eip712-message?"),
+		).toBe(true);
 	});
 
 	it("surfaces HttpError on 4xx", async () => {
@@ -123,6 +126,7 @@ describe("getEip712Message", () => {
 		await expect(
 			getEip712Message({
 				address: "0xbad",
+				clientId: "APITRADER",
 				baseUrl: "https://x",
 				timeoutMs: 5000,
 			}),
