@@ -168,8 +168,8 @@ Get the current ratio (long/short composition price) for a specific Pear Protoco
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `longAssets` | string | yes | Asset symbols on the long side (e.g. ['BTC']). |
-| `shortAssets` | string | yes | Asset symbols on the short side. Pass an empty array for long-only baskets. |
+| `longAssets` | array | yes | Asset symbols on the long side (e.g. ['BTC']). |
+| `shortAssets` | array | yes | Asset symbols on the short side. Pass an empty array for long-only baskets. |
 
 ### `get_portfolio`
 Fetch the authenticated user's full portfolio metrics on Pear Protocol: bucketed PnL across last 1 day / 1 week / 1 month / 1 year / all-time, plus overall stats (total trades, all-time volume, current open interest, unrealized PnL). Requires PEAR_API_KEY.
@@ -181,7 +181,7 @@ Fetch the authenticated user's recent closed trades on Pear Protocol with realiz
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `limit` | number |  | Max number of trades to return. Default 50. |
+| `limit` | integer |  | Max number of trades to return. Default 50. |
 | `startDate` | string |  | ISO 8601 timestamp or epoch ms. Only return trades on or after this time. |
 | `endDate` | string |  | ISO 8601 timestamp or epoch ms. Only return trades on or before this time. |
 
@@ -201,8 +201,8 @@ Browse Pear Protocol pair markets with optional filters and pagination. Each mar
 | `change24h` | number |  | Minimum 24h ratio change (e.g. 0.05 for +5%). |
 | `netFunding` | number |  | Filter by net funding rate. |
 | `sort` | string |  | Sort key (e.g. 'volume', 'change24h'). |
-| `page` | number |  | Page number (1-indexed). |
-| `pageSize` | number |  | Results per page. Default 20. |
+| `page` | integer |  | Page number (1-indexed). |
+| `pageSize` | integer |  | Results per page. Default 20. |
 
 <!-- AUTO-GENERATED TOOLS END -->
 
