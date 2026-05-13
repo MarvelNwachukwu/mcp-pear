@@ -1,5 +1,13 @@
 # @marvelcodes/mcp-pear
 
+## 0.1.4
+
+### Patch Changes
+
+- - Rewrite the README for clarity: tighter prose, no em dashes or emojis, public/auth tool grouping, and a "What's next" section announcing v0.2 trade execution (ten new write tools gated behind `PEAR_TRADE_ENABLED=true`, agent wallet signs server-side).
+  - Restyle the `mcp-pear setup` signer page with Pear Protocol's dark/lime aesthetic: card layout, lime accent, status pill with animated dot, primary/secondary buttons. Chain row now shows human-readable names (Arbitrum One, Hyperliquid, Base, etc.) instead of raw hex.
+  - Strip em dashes from CLI step labels, error messages, and code comments so the setup output reads cleaner.
+
 ## 0.1.3
 
 ### Patch Changes
