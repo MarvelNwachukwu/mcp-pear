@@ -446,7 +446,7 @@ describe("PearClient with PEAR_JWT (pass-through mode)", () => {
 		await expect(client.getAccountSummary()).rejects.toThrow(
 			/JWT expired.*orchestrator must mint a new one/,
 		);
-		// Only the original /accounts call hit the network — no /auth/login or /auth/refresh.
+		// Only the original /accounts call hit the network; no /auth/login or /auth/refresh.
 		expect(fetchMockJ).toHaveBeenCalledTimes(1);
 		const [url] = fetchMockJ.mock.calls[0];
 		expect(url).toContain("/accounts");

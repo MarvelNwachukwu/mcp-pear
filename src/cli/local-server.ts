@@ -12,7 +12,7 @@ export interface ServeHtmlResult {
  *
  * Why we don't just open a file:// URL: browser wallet extensions
  * (Rabby, MetaMask, Frame) only inject `window.ethereum` into http(s)
- * pages by default — file:// pages are blocked unless the user
+ * pages by default; file:// pages are blocked unless the user
  * explicitly enables "Allow access to file URLs" in the extension's
  * details page. Serving over http://127.0.0.1 sidesteps the issue.
  */

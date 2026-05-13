@@ -57,11 +57,11 @@ export class PearClient {
 		PearClient.instance = undefined;
 	}
 
-	/** @internal Test seam — do not call from production code. */
+	/** @internal Test seam. Do not call from production code. */
 	async ensureJwtForTests(): Promise<string> {
 		return this.ensureJwt();
 	}
-	/** @internal Test seam — do not call from production code. */
+	/** @internal Test seam. Do not call from production code. */
 	invalidateAccessTokenForTests(): void {
 		this.accessToken = null;
 	}

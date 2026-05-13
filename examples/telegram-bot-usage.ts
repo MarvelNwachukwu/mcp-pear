@@ -4,7 +4,7 @@
 // app.pear.garden/connect/telegram?code=<code>, or any custom EIP-712/Privy/wallet flow)
 // and stores per-user JWTs in its database. When the bot needs to call a Pear API on
 // behalf of a user, it spawns mcp-pear as a subprocess with the user's JWT injected via
-// PEAR_JWT — mcp-pear treats the JWT as opaque and never touches /auth/login.
+// PEAR_JWT. mcp-pear treats the JWT as opaque and never touches /auth/login.
 //
 // This example is illustrative; the actual MCP client integration depends on your stack
 // (FastMCP client, raw stdio JSON-RPC, ADK-TS McpToolset, etc.).
@@ -36,7 +36,7 @@ export function spawnMcpPearForUser(creds: UserCredentials) {
 	return child;
 }
 
-// Example usage (pseudocode — your bot framework drives the MCP client):
+// Example usage (pseudocode; your bot framework drives the MCP client):
 //
 //   const user = await db.users.findOne({ telegramId: ctx.from.id });
 //   const child = spawnMcpPearForUser({
@@ -51,5 +51,5 @@ export function spawnMcpPearForUser(creds: UserCredentials) {
 // When PEAR_JWT expires:
 //   - If PEAR_REFRESH_TOKEN was provided, mcp-pear self-refreshes (rotating the token) and continues.
 //   - Otherwise mcp-pear surfaces "JWT expired; the orchestrator must mint a new one
-//     and restart mcp-pear." — your bot intercepts this, refreshes the user's JWT
+//     and restart mcp-pear." Your bot intercepts this, refreshes the user's JWT
 //     via Pear's auth flow, and respawns the subprocess.

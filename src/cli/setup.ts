@@ -31,7 +31,7 @@ export async function runSetup(): Promise<void> {
 	let serverClose: (() => Promise<void>) | null = null;
 	try {
 		console.log(
-			"mcp-pear setup — mint a Pear Protocol API key for your wallet.\n",
+			"mcp-pear setup: mint a Pear Protocol API key for your wallet.\n",
 		);
 
 		const cfg = getConfig();
@@ -45,19 +45,19 @@ export async function runSetup(): Promise<void> {
 			defaultTokenName({ hostname: hostname(), now: new Date() }),
 		);
 
-		console.log("\nStep 1/4 — fetching sign-in message from Pear…");
+		console.log("\nStep 1/4: fetching sign-in message from Pear…");
 		const rawTypedData = await getEip712Message({
 			address,
 			clientId,
 			baseUrl,
 			timeoutMs,
 		});
-		// Pear omits EIP712Domain from types — inject the canonical entry so
-		// wallet and local recovery hash the same structure.
+		// Pear omits EIP712Domain from types, so inject the canonical entry
+		// here. Otherwise the wallet and local recovery hash differently.
 		const typedData = normalizeTypedData(rawTypedData);
 		console.log("  ✓ EIP-712 typed data received");
 
-		console.log("\nStep 2/4 — sign in your wallet");
+		console.log("\nStep 2/4: sign in your wallet");
 		const html = generateSignerHtml({ address, typedData });
 		const server = await serveHtml(html);
 		serverClose = server.close;
@@ -87,13 +87,13 @@ export async function runSetup(): Promise<void> {
 			}
 		}
 
-		console.log("\nStep 3/4 — exchanging for API key");
+		console.log("\nStep 3/4: exchanging for API key");
 		const timestamp = Number(
 			(typedData.message as { timestamp?: unknown }).timestamp,
 		);
 		if (!Number.isFinite(timestamp)) {
 			console.error(
-				"  ✗ Pear's eip712-message response didn't include a numeric message.timestamp — can't continue.",
+				"  ✗ Pear's eip712-message response didn't include a numeric message.timestamp. Can't continue.",
 			);
 			exit(1);
 		}
@@ -112,7 +112,7 @@ export async function runSetup(): Promise<void> {
 		} catch (err) {
 			if (err instanceof HttpError && err.status === 401) {
 				console.error(
-					"  ✗ Pear rejected the signature. The sign-in message may have expired — re-run setup.",
+					"  ✗ Pear rejected the signature. The sign-in message may have expired. Re-run setup.",
 				);
 				exit(1);
 			}
@@ -137,12 +137,12 @@ export async function runSetup(): Promise<void> {
 			const msg = err instanceof Error ? err.message : String(err);
 			console.error(`  ✗ API key minting failed: ${msg}`);
 			console.error(
-				`    JWT is still valid — you can use it directly:\n    PEAR_JWT=${jwt} mcp-pear`,
+				`    JWT is still valid. You can use it directly:\n    PEAR_JWT=${jwt} mcp-pear`,
 			);
 			exit(0);
 		}
 
-		console.log("\nStep 4/4 — verifying");
+		console.log("\nStep 4/4: verifying");
 		const verifiedOk = await verifyApiKey({
 			apiKey,
 			address,
@@ -152,7 +152,7 @@ export async function runSetup(): Promise<void> {
 		});
 		if (!verifiedOk) {
 			console.error(
-				"  ✗ Minted key didn't authenticate — this shouldn't happen. Report it.",
+				"  ✗ Minted key didn't authenticate. This shouldn't happen. Report it.",
 			);
 			printKeyBlock({ apiKey, address });
 			exit(1);
@@ -250,7 +250,7 @@ function openBrowser(url: string): void {
 	try {
 		spawn(cmd, args, { stdio: "ignore", detached: true }).unref();
 	} catch {
-		// Browser failed to open — caller already printed the URL.
+		// Browser failed to open; caller already printed the URL.
 	}
 }
 

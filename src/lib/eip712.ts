@@ -12,7 +12,7 @@ const DOMAIN_FIELD_TYPES: ReadonlyArray<{ key: string; type: string }> = [
 /**
  * Pear's /auth/eip712-message response omits `EIP712Domain` from `types`.
  * Wallets and viem both auto-derive it from the present `domain` keys, but
- * the two derivations can produce different field orderings — yielding
+ * the two derivations can produce different field orderings, yielding
  * different typed-data hashes for the same logical data, and a wrong
  * recovered signer.
  *
@@ -66,7 +66,7 @@ export async function recoverEip712Signer(
 	params: RecoverParams,
 ): Promise<string> {
 	// viem's TypedData generic is stricter than runtime-shaped objects need.
-	// We forward the runtime object as-is — viem only reads fields.
+	// We forward the runtime object as-is; viem only reads fields.
 	const args = {
 		...params.typedData,
 		signature: params.signature as `0x${string}`,
