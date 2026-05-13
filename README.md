@@ -3,28 +3,35 @@
 [![npm](https://img.shields.io/npm/v/@marvelcodes/mcp-pear.svg)](https://www.npmjs.com/package/@marvelcodes/mcp-pear)
 [![CI](https://github.com/MarvelNwachukwu/mcp-pear/actions/workflows/push.yml/badge.svg)](https://github.com/MarvelNwachukwu/mcp-pear/actions)
 
-A read-only Model Context Protocol (MCP) server exposing [Pear Protocol](https://pearprotocol.io)'s trading API to AI agents. Use it to let Claude (or any MCP-compatible agent) browse markets, check the ratio of any pair, and read your account/positions/orders/trade-history/portfolio.
+Read-only Model Context Protocol (MCP) server for [Pear Protocol](https://pearprotocol.io). Gives Claude, or any MCP-compatible agent, access to markets, pair ratios, positions, orders, trade history, and portfolio.
 
-> **v0.1 is read-only** — no signing, no trade execution, no custody risk. Trade execution is on the v0.2 roadmap.
+> **v0.1 is read-only.** No signing, no execution, no custody risk. Trade execution lands in v0.2.
 
 ## What is Pear Protocol?
 
-Pear Protocol is a Hyperliquid-backed perpetuals platform for trading **pair markets** — long one basket, short another. Every pair has a live ratio that moves as the underlying assets diverge. Learn more at [pearprotocol.io](https://pearprotocol.io).
+Pear is a Hyperliquid-backed perps platform for **pair markets**: long one basket against another. Every pair has a live ratio that moves as the legs diverge. More at [pearprotocol.io](https://pearprotocol.io).
 
-## Features
+## Tools
 
-- `get_health` — API health and uptime
-- `list_markets` — browse pair markets with filters and pagination
-- `get_active_markets` — top gainers / losers / highlighted pairs
-- `get_pair_ratio` — current ratio + 24h change + funding for a specific pair
-- `get_account_summary` — your account header (auth)
-- `get_open_positions` — your open positions with PnL (auth)
-- `get_open_orders` — your open limit/TP/SL orders (auth)
-- `get_twap_orders` — your active TWAP orders (auth)
-- `get_trade_history` — your closed trades with realized PnL (auth)
-- `get_portfolio` — bucketed PnL across 1d/1w/1m/1y/all-time (auth)
+Public (no auth):
 
-## Installation
+- `get_health`: API health and uptime
+- `list_markets`: browse pair markets with filters and pagination
+- `get_active_markets`: top gainers, losers, and highlighted pairs
+- `get_pair_ratio`: current ratio, 24h change, and funding for a specific pair
+
+Authenticated:
+
+- `get_account_summary`: your account header
+- `get_open_positions`: your open positions with PnL
+- `get_open_orders`: your open limit, TP, and SL orders
+- `get_twap_orders`: your active TWAP orders
+- `get_trade_history`: your closed trades with realized PnL
+- `get_portfolio`: bucketed PnL across 1d, 1w, 1m, 1y, and all-time
+
+Full parameter reference in [Tool reference](#tool-reference).
+
+## Install
 
 ```bash
 # Run directly
@@ -35,48 +42,49 @@ pnpm install -g @marvelcodes/mcp-pear
 mcp-pear
 ```
 
-## Getting started
+## Getting an API key
 
-The fastest way to get authenticated tools working:
+For the authenticated tools, mint a key:
 
 ```bash
 npx -y @marvelcodes/mcp-pear setup
 ```
 
-This walks you through a one-time wallet signature in your browser, mints a Pear API key, and (optionally) writes `PEAR_API_KEY` + `PEAR_ADDRESS` to a `.env` file. Paste the same two values into your Claude Desktop config and restart Claude.
+The CLI opens a browser, asks you to sign once with your wallet, mints a Pear API key, and (optionally) writes `PEAR_API_KEY` and `PEAR_ADDRESS` to a `.env`. Copy those two values into your Claude Desktop config and restart Claude.
 
-> Already have a JWT from `app.pear.garden`? Skip `setup` and use the **JWT pass-through** mode below.
+> Already have a JWT from `app.pear.garden`? Skip `setup` and use **JWT pass-through** below.
 
 ## Configuration
 
-mcp-pear supports three auth modes. The first one whose env vars are set wins at first authenticated tool call.
+Three auth modes. mcp-pear uses the first one whose env vars are set, decided on the first authenticated call.
 
-### Mode 1 — JWT pass-through (recommended for multi-tenant orchestrators)
+### Mode 1: JWT pass-through (multi-tenant orchestrators)
 
-For Telegram bots and other orchestrators that mint JWTs externally (e.g. via Privy, EIP-712, or any flow Pear supports). mcp-pear treats the JWT as opaque and never calls `/auth/login`.
+For Telegram bots and other orchestrators that mint JWTs externally (Privy, EIP-712, or any Pear-supported flow). The JWT is opaque; mcp-pear never calls `/auth/login`.
 
 | Env var | Required | Description |
 |---|---|---|
-| `PEAR_JWT` | yes | Pre-minted access token. When set, used directly. PEAR_API_KEY/PEAR_ADDRESS act as fallback if the JWT expires and no PEAR_REFRESH_TOKEN is configured. |
-| `PEAR_REFRESH_TOKEN` | no | If set, mcp-pear self-refreshes the JWT when it expires mid-session (each refresh rotates the token). Otherwise the orchestrator must re-mint and respawn the subprocess. |
+| `PEAR_JWT` | yes | Pre-minted access token. Used directly when set. `PEAR_API_KEY` and `PEAR_ADDRESS` act as fallback if the JWT expires and no `PEAR_REFRESH_TOKEN` is configured. |
+| `PEAR_REFRESH_TOKEN` | no | If set, mcp-pear refreshes the JWT itself when it expires mid-session (each refresh rotates the token). Without it, the orchestrator has to re-mint and respawn the subprocess. |
 
-When `PEAR_JWT` expires and no refresh token is available, authenticated tools return:
+When `PEAR_JWT` expires and no refresh token is set, authenticated tools return:
+
 > `JWT expired; the orchestrator must mint a new one and restart mcp-pear.`
 
 See [`examples/telegram-bot-usage.ts`](./examples/telegram-bot-usage.ts) for the orchestrator pattern.
 
-### Mode 2 — API key + wallet address (single-user / Claude Desktop)
+### Mode 2: API key + wallet address (single-user, Claude Desktop)
 
 | Env var | Required | Description |
 |---|---|---|
 | `PEAR_API_KEY` | for auth tools | Your Pear API key. |
-| `PEAR_ADDRESS` | for auth tools | The wallet address bound to the API key (`0x...`). |
+| `PEAR_ADDRESS` | for auth tools | Wallet address bound to the API key (`0x...`). |
 
-mcp-pear mints the JWT itself by calling `POST /auth/login`. Both fields are required because the OpenAPI spec requires `address` in the request body.
+mcp-pear mints the JWT itself by calling `POST /auth/login`. Both fields are required: the OpenAPI spec needs `address` in the request body.
 
-### Public-only mode (no auth)
+### Public-only mode
 
-The four public tools (`get_health`, `list_markets`, `get_active_markets`, `get_pair_ratio`) work without any auth env vars. Authenticated tools return a `ConfigError` describing which env var is missing.
+The four public tools work without any auth env vars. Authenticated tools return a `ConfigError` naming the missing env var.
 
 ### Common settings (optional)
 
@@ -86,9 +94,9 @@ The four public tools (`get_health`, `list_markets`, `get_active_markets`, `get_
 | `PEAR_API_TIMEOUT_MS` | `10000` | Per-request timeout. |
 | `PEAR_CLIENT_ID` | `APITRADER` | Client identifier sent to `/auth/login`. |
 
-## Claude Desktop usage
+## Claude Desktop
 
-Add to your `claude_desktop_config.json`:
+Add to `claude_desktop_config.json`:
 
 ```json
 {
@@ -107,7 +115,7 @@ Add to your `claude_desktop_config.json`:
 
 Restart Claude Desktop and ask: "Use Pear to show me the top active markets right now."
 
-## ADK-TS usage
+## ADK-TS
 
 ```ts
 import { McpToolset, StdioTransport } from "@iqai/adk";
@@ -126,7 +134,7 @@ const tools = await pearTools.listTools();
 
 Full example in [`examples/adk-ts-usage.ts`](./examples/adk-ts-usage.ts).
 
-## Tools
+## Tool reference
 
 <!-- AUTO-GENERATED TOOLS START -->
 
@@ -160,8 +168,8 @@ Get the current ratio (long/short composition price) for a specific Pear Protoco
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `longAssets` | string | ✅ | Asset symbols on the long side (e.g. ['BTC']). |
-| `shortAssets` | string | ✅ | Asset symbols on the short side. Pass an empty array for long-only baskets. |
+| `longAssets` | string | yes | Asset symbols on the long side (e.g. ['BTC']). |
+| `shortAssets` | string | yes | Asset symbols on the short side. Pass an empty array for long-only baskets. |
 
 ### `get_portfolio`
 Fetch the authenticated user's full portfolio metrics on Pear Protocol: bucketed PnL across last 1 day / 1 week / 1 month / 1 year / all-time, plus overall stats (total trades, all-time volume, current open interest, unrealized PnL). Requires PEAR_API_KEY.
@@ -174,8 +182,8 @@ Fetch the authenticated user's recent closed trades on Pear Protocol with realiz
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `limit` | number |  | Max number of trades to return. Default 50. |
-| `startDate` | string |  | ISO 8601 timestamp or epoch ms — only return trades on or after this time. |
-| `endDate` | string |  | ISO 8601 timestamp or epoch ms — only return trades on or before this time. |
+| `startDate` | string |  | ISO 8601 timestamp or epoch ms. Only return trades on or after this time. |
+| `endDate` | string |  | ISO 8601 timestamp or epoch ms. Only return trades on or before this time. |
 
 ### `get_twap_orders`
 List the authenticated user's active TWAP (time-weighted average price) orders on Pear Protocol, including chunk execution and fill detail. Requires PEAR_API_KEY.
@@ -202,10 +210,10 @@ Browse Pear Protocol pair markets with optional filters and pagination. Each mar
 
 ```bash
 pnpm install
-pnpm run build           # tsc → dist/
-pnpm test                # vitest run
-pnpm run lint            # biome check
-pnpm run format          # biome format --write
+pnpm run build
+pnpm test
+pnpm run lint
+pnpm run format
 ```
 
 Live smoke tests:
@@ -214,15 +222,16 @@ Live smoke tests:
 PEAR_API_KEY=<real> pnpm test smoke
 ```
 
-## Roadmap
+## What's next
 
-- **v0.2** — trade execution (open / close / adjust positions, place / cancel orders, leverage, TP/SL), agent wallet creation/approval flow, candle synthesis from Hyperliquid `candleSnapshot`
-- **v0.3** — WebSocket streaming for real-time market and position updates
+**v0.2: trade execution.** Ten new tools that take mcp-pear from read-only to write: open, close, and adjust positions; set leverage and TP/SL; cancel limit, TP, SL, and TWAP orders; create and approve the agent wallet. All gated behind `PEAR_TRADE_ENABLED=true` (off by default, strict literal match). Pear signs trades server-side via the agent wallet, so mcp-pear never holds private keys.
+
+**v0.3.** WebSocket streaming for real-time market and position updates. Spot orders. Candle synthesis from Hyperliquid `candleSnapshot`.
 
 ## Disclaimer
 
-This project is **not affiliated with Pear Protocol**. It's an independent, experimental wrapper that calls Pear's public API. v0.1 is read-only — it never signs or sends transactions, so there is no custodial risk. Use at your own risk; no warranty is provided.
+Not affiliated with Pear Protocol. Independent wrapper around Pear's public API. v0.1 never signs or sends transactions, so there is no custodial risk. Use at your own risk; no warranty.
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT. See [LICENSE](./LICENSE).
