@@ -30,7 +30,7 @@ All write tools short-circuit with `ConfigError` unless `PEAR_TRADE_ENABLED=true
 - tsc build clean (`pnpm run build`)
 - 20 MCP tools enumerated via stdio `tools/list` (10 v0.1 + 10 v0.2)
 - Server boots cleanly with and without the gate; unlock notice prints to stderr when `PEAR_TRADE_ENABLED=true`
-- No live trade smoke ran — see manual checklist below before pushing
+- Live trade smoke ran 2026-05-27: opened + closed a ~$10.91 ETH long via the stdio MCP path on real funds, net cost ≈ $0.003 (see checklist item 4)
 
 ## Manual smoke checklist for the operator
 
@@ -48,7 +48,21 @@ Before `git push`:
    PEAR_JWT='<real>' PEAR_TRADE_ENABLED=true node dist/index.js
    ```
    Call `get_agent_wallet` and `create_agent_wallet` from Claude Desktop. Confirm the response includes the Hyperliquid approval instructions.
-4. **(Optional but recommended) Place a tiny position and immediately close it.** Pear's minimum is $1 usdValue, so risk is bounded. Use `open_position` with `executionType: "MARKET"`, `leverage: 1`, `usdValue: 1`, then `close_position` immediately.
+4. **Place a small position and immediately close it.** Pear's API accepts `usdValue ≥ 1`, but **Hyperliquid rejects orders below ~$10 notional**, so the smoke must clear that floor — a literal `usdValue: 1` will be exchange-rejected. `usdValue` is the position notional (margin = `usdValue ÷ leverage`). Use a single-leg long (`shortAssets: []`) so only one order has to clear the $10 minimum:
+
+   ```jsonc
+   // open_position
+   {
+     "executionType": "MARKET",
+     "leverage": 2,
+     "usdValue": 11,
+     "slippage": 0.01,
+     "longAssets": [{ "asset": "ETH", "weight": 1 }],
+     "shortAssets": []
+   }
+   ```
+
+   Then `close_position` with the returned `positionId` immediately. First confirm your USDC sits in the Hyperliquid **Perps** balance (not Spot) — USDC bridged via CCTP lands in Spot and must be transferred to Perps in the HL app, or the order fails on insufficient margin. ✅ Done 2026-05-27: round-tripped a ~$10.91 ETH long, net cost ≈ $0.003.
 
 ## To ship
 

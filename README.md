@@ -237,6 +237,13 @@ Ten new tools that execute trades on your behalf. **All write tools are off by d
 
 When `PEAR_TRADE_ENABLED=true`, mcp-pear logs `[mcp-pear] PEAR_TRADE_ENABLED=true — trade execution unlocked.` to stderr on startup so operators can see writes are live.
 
+### Funding & minimums
+
+Trades execute on Hyperliquid, which margins positions from your **Perps** balance. Two things bite first-time operators:
+
+- **Minimum order size.** Hyperliquid rejects orders below **~$10 notional**. `usdValue` is the position's USD *notional* (margin = `usdValue ÷ leverage`), so a single-leg position needs `usdValue ≥ 10`. A long + short pair is two separate orders, each subject to the $10 floor — i.e. ~$20+ notional total.
+- **Spot vs Perps balance.** USDC bridged onto Hyperliquid (e.g. via Circle CCTP) often lands in your **Spot** balance. Move it to **Perps** in the Hyperliquid app before trading, or `open_position` fails with insufficient margin.
+
 ## Roadmap
 
 - **v0.3** — WebSocket streaming for real-time market and position updates; spot orders (`POST /orders/spot`); candle synthesis from Hyperliquid `candleSnapshot`.
