@@ -15,6 +15,7 @@ export interface PearConfig {
 	refreshToken: string | undefined;
 	requireApiKey(toolName: string): string;
 	requireAddress(toolName: string): string;
+	requireTradeEnabled(toolName: string): void;
 }
 
 let cached: PearConfig | undefined;
@@ -31,6 +32,7 @@ export function getConfig(): PearConfig {
 	const clientId = process.env.PEAR_CLIENT_ID?.trim() || "APITRADER";
 	const jwt = process.env.PEAR_JWT?.trim() || undefined;
 	const refreshToken = process.env.PEAR_REFRESH_TOKEN?.trim() || undefined;
+	const tradeEnabled = process.env.PEAR_TRADE_ENABLED === "true";
 
 	cached = {
 		apiKey,
@@ -55,6 +57,13 @@ export function getConfig(): PearConfig {
 				);
 			}
 			return address;
+		},
+		requireTradeEnabled(toolName: string) {
+			if (!tradeEnabled) {
+				throw new ConfigError(
+					`\`${toolName}\` executes real trades on Pear Protocol / Hyperliquid. It is disabled by default. Set PEAR_TRADE_ENABLED=true in your env to enable.`,
+				);
+			}
 		},
 	};
 	return cached;

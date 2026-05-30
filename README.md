@@ -222,15 +222,43 @@ Live smoke tests:
 PEAR_API_KEY=<real> pnpm test smoke
 ```
 
-## What's next
+## Trade execution (v0.2)
 
-**v0.2: trade execution.** Ten new tools that take mcp-pear from read-only to write: open, close, and adjust positions; set leverage and TP/SL; cancel limit, TP, SL, and TWAP orders; create and approve the agent wallet. All gated behind `PEAR_TRADE_ENABLED=true` (off by default, strict literal match). Pear signs trades server-side via the agent wallet, so mcp-pear never holds private keys.
+Ten new tools that take mcp-pear from read-only to write. **All write tools are off by default.** Set `PEAR_TRADE_ENABLED=true` to unlock them (strict literal match on `"true"`; anything else, including `"True"`, `"1"`, or `"yes"`, keeps writes disabled). Pear signs trades server-side via an agent wallet you create, so mcp-pear never holds private keys for trades.
+
+| Tool | Type | Description |
+|---|---|---|
+| `get_agent_wallet`     | read  | Get the agent wallet Pear uses to sign your trades. |
+| `create_agent_wallet`  | write | Create one. After creation, approve it on Hyperliquid (the response message contains the instructions). |
+| `open_position`        | write | Open a pair position. Supports MARKET, TRIGGER, TWAP, LADDER, TP, SL, SYNC. |
+| `close_position`       | write | Close one position by id (MARKET or TWAP). |
+| `close_all_positions`  | write | Close every open position with one execution type. |
+| `adjust_position`      | write | Reduce or increase position size by 1 to 100 percent. MARKET or LIMIT. |
+| `adjust_leverage`      | write | Set leverage 1 to 100x on an existing position. Carries liquidation risk. |
+| `set_risk_parameters`  | write | Set or update TP and SL on an existing position. |
+| `cancel_order`         | write | Cancel a pending limit, TP, or SL order. |
+| `cancel_twap_order`    | write | Cancel a TWAP order and its remaining chunks. |
+
+| Env var | Default | Description |
+|---|---|---|
+| `PEAR_TRADE_ENABLED` | unset | Set to `"true"` (lowercase, exact) to unlock the write tools. Anything else keeps them disabled and the gate error is returned to the LLM. |
+
+When `PEAR_TRADE_ENABLED=true`, mcp-pear logs `[mcp-pear] PEAR_TRADE_ENABLED=true. Trade execution unlocked.` to stderr on startup so operators can see writes are live.
+
+### Funding and minimums
+
+Trades execute on Hyperliquid, which margins positions from your **Perps** balance. Two things bite first-time operators:
+
+- **Minimum order size.** Hyperliquid rejects orders below ~$10 notional. `usdValue` is the position's USD notional (margin = `usdValue / leverage`), so a single-leg position needs `usdValue` at or above 10. A long plus short pair is two separate orders, each subject to the $10 floor (about $20 or more notional total).
+- **Spot vs Perps balance.** USDC bridged onto Hyperliquid (for example via Circle CCTP) often lands in your **Spot** balance. Move it to **Perps** in the Hyperliquid app before trading, or `open_position` fails with insufficient margin.
+
+## What's next
 
 **v0.3.** WebSocket streaming for real-time market and position updates. Spot orders. Candle synthesis from Hyperliquid `candleSnapshot`.
 
 ## Disclaimer
 
-Not affiliated with Pear Protocol. Independent wrapper around Pear's public API. v0.1 never signs or sends transactions, so there is no custodial risk. Use at your own risk; no warranty.
+Not affiliated with Pear Protocol. Independent wrapper around Pear's public API. v0.2 trade-execution tools are off by default and require explicit operator opt-in (`PEAR_TRADE_ENABLED=true`). Pear signs server-side, so mcp-pear never holds private keys. Use at your own risk; no warranty.
 
 ## License
 

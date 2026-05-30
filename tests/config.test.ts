@@ -95,4 +95,40 @@ describe("config", () => {
 		expect(cfg.jwt).toBeUndefined();
 		expect(cfg.refreshToken).toBeUndefined();
 	});
+
+	describe("requireTradeEnabled", () => {
+		it("throws when PEAR_TRADE_ENABLED is unset", () => {
+			process.env.PEAR_TRADE_ENABLED = undefined;
+			resetConfigForTests();
+			expect(() =>
+				getConfig().requireTradeEnabled("open_position"),
+			).toThrowError(/PEAR_TRADE_ENABLED=true/);
+		});
+
+		it("throws on any non-'true' string", () => {
+			for (const v of ["", "false", "True", "TRUE", "1", "yes", "no"]) {
+				process.env.PEAR_TRADE_ENABLED = v;
+				resetConfigForTests();
+				expect(() => getConfig().requireTradeEnabled("x")).toThrow(ConfigError);
+			}
+		});
+
+		it("passes when PEAR_TRADE_ENABLED === 'true'", () => {
+			process.env.PEAR_TRADE_ENABLED = "true";
+			resetConfigForTests();
+			expect(() => getConfig().requireTradeEnabled("x")).not.toThrow();
+		});
+
+		it("error message names the tool", () => {
+			process.env.PEAR_TRADE_ENABLED = undefined;
+			resetConfigForTests();
+			try {
+				getConfig().requireTradeEnabled("open_position");
+				throw new Error("should have thrown");
+			} catch (err) {
+				expect(err).toBeInstanceOf(ConfigError);
+				expect((err as Error).message).toContain("open_position");
+			}
+		});
+	});
 });
