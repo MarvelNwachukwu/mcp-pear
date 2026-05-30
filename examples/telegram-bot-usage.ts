@@ -23,7 +23,7 @@ interface UserCredentials {
  * a credential consumer in this mode.
  */
 export function spawnMcpPearForUser(creds: UserCredentials) {
-	const child = spawn("npx", ["-y", "@marvelcodes/mcp-pear"], {
+	const child = spawn("npx", ["-y", "@marvelcodes/mcp-pear@latest"], {
 		stdio: ["pipe", "pipe", "inherit"],
 		env: {
 			...process.env,

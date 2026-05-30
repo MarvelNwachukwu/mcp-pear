@@ -44,19 +44,21 @@ Full parameter reference in [Tool reference](#tool-reference). See [Trade execut
 
 ```bash
 # Run directly
-npx -y @marvelcodes/mcp-pear
+npx -y @marvelcodes/mcp-pear@latest
 
 # Or install globally
 pnpm install -g @marvelcodes/mcp-pear
 mcp-pear
 ```
 
+> **Pin `@latest` (or a specific version) in the npx spec.** Plain `npx @marvelcodes/mcp-pear` can launch a stale cached version: npx prefers its local cache over the npm registry when the spec is unpinned, so after a new release lands you may still be running the old one. `@latest` re-resolves against the registry each launch; pin like `@0.2.0` instead if you want a frozen version. Stuck on an old version after upgrading? Clear the npx cache: `rm -rf ~/.npm/_npx` (macOS/Linux).
+
 ## Getting an API key
 
 For the authenticated tools, mint a key:
 
 ```bash
-npx -y @marvelcodes/mcp-pear setup
+npx -y @marvelcodes/mcp-pear@latest setup
 ```
 
 The CLI opens a browser, asks you to sign once with your wallet, mints a Pear API key, and (optionally) writes `PEAR_API_KEY` and `PEAR_ADDRESS` to a `.env`. Copy those two values into your Claude Desktop config and restart Claude.
@@ -112,7 +114,7 @@ Add to `claude_desktop_config.json`:
   "mcpServers": {
     "pear": {
       "command": "npx",
-      "args": ["-y", "@marvelcodes/mcp-pear"],
+      "args": ["-y", "@marvelcodes/mcp-pear@latest"],
       "env": {
         "PEAR_API_KEY": "your-pear-api-key-here",
         "PEAR_ADDRESS": "0xYourWalletAddress"
@@ -132,7 +134,7 @@ import { McpToolset, StdioTransport } from "@iqai/adk";
 const pearTools = new McpToolset({
 	transport: new StdioTransport({
 		command: "npx",
-		args: ["-y", "@marvelcodes/mcp-pear"],
+		args: ["-y", "@marvelcodes/mcp-pear@latest"],
 		env: { PEAR_API_KEY: process.env.PEAR_API_KEY ?? "", PEAR_ADDRESS: process.env.PEAR_ADDRESS ?? "" },
 	}),
 });
