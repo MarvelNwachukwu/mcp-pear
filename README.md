@@ -138,6 +138,68 @@ Full example in [`examples/adk-ts-usage.ts`](./examples/adk-ts-usage.ts).
 
 <!-- AUTO-GENERATED TOOLS START -->
 
+### `adjust_leverage`
+Change leverage (1-100x) on an existing Pear Protocol position. Higher leverage means greater liquidation risk for the same price move. WRITE: changes risk profile of a live position. Requires PEAR_TRADE_ENABLED=true.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `positionId` | string | yes |  |
+| `leverage` | integer | yes |  |
+
+### `adjust_position`
+Reduce or increase an existing Pear Protocol position's size by 1-100 percent. executionType: MARKET (immediate) or LIMIT (provide limitRatio). WRITE: changes exposure on a real trade. Requires PEAR_TRADE_ENABLED=true.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `positionId` | string | yes |  |
+| `adjustmentType` | string | yes |  |
+| `adjustmentSize` | integer | yes |  |
+| `executionType` | string | yes |  |
+| `limitRatio` | number |  |  |
+| `referralCode` | string |  |  |
+
+### `cancel_order`
+Cancel a pending Pear Protocol limit, take-profit, or stop-loss order by orderId. Does not affect already-filled portions. For TWAP orders, use cancel_twap_order. WRITE: cancels a live order. Requires PEAR_TRADE_ENABLED=true.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `orderId` | string | yes |  |
+
+### `cancel_twap_order`
+Cancel a Pear Protocol TWAP (time-weighted average price) order and all of its remaining unfilled chunks. WRITE: cancels a live order. Requires PEAR_TRADE_ENABLED=true.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `orderId` | string | yes |  |
+
+### `close_all_positions`
+Close every open Pear Protocol position with a single executionType (MARKET or TWAP). Returns a per-position result array with success/error. WRITE: executes real trades. Requires PEAR_TRADE_ENABLED=true.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `executionType` | string | yes |  |
+| `twapDuration` | number |  |  |
+| `twapIntervalSeconds` | number |  |  |
+| `randomizeExecution` | boolean |  |  |
+| `referralCode` | string |  |  |
+
+### `close_position`
+Close one open Pear Protocol position by positionId. executionType: MARKET (immediate) or TWAP (spread over time; requires twapDuration in seconds). WRITE: executes a real trade. Requires PEAR_TRADE_ENABLED=true.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `positionId` | string | yes |  |
+| `executionType` | string | yes |  |
+| `twapDuration` | number |  |  |
+| `twapIntervalSeconds` | number |  |  |
+| `randomizeExecution` | boolean |  |  |
+| `referralCode` | string |  |  |
+
+### `create_agent_wallet`
+Create a new Pear Protocol agent wallet for the authenticated user. The agent wallet is what Pear uses to sign Hyperliquid trades. After creation, the user MUST approve this wallet on Hyperliquid (the response message contains the approval instructions). WRITE: executes a state change. Requires PEAR_TRADE_ENABLED=true.
+
+_No parameters_
+
 ### `get_account_summary`
 Get the authenticated user's Pear Protocol account summary: agent wallet address, total closed trades, pending trigger-order USD value, pending TWAP-chunk USD value, and last sync timestamp. Requires PEAR_API_KEY.
 
@@ -145,6 +207,11 @@ _No parameters_
 
 ### `get_active_markets`
 Get the most active Pear Protocol pair markets right now: current active pairs plus top gainers, top losers, highlighted pairs, and the user's watchlist. Use to see what's hot or as a starting point for narrowing into a specific pair.
+
+_No parameters_
+
+### `get_agent_wallet`
+Get the authenticated user's Pear Protocol agent wallet address. The agent wallet is what Pear uses to sign Hyperliquid trades on the user's behalf. Returns an empty/missing address if no agent wallet has been created yet; call create_agent_wallet to create one.
 
 _No parameters_
 
@@ -203,6 +270,37 @@ Browse Pear Protocol pair markets with optional filters and pagination. Each mar
 | `sort` | string |  | Sort key (e.g. 'volume', 'change24h'). |
 | `page` | integer |  | Page number (1-indexed). |
 | `pageSize` | integer |  | Results per page. Default 20. |
+
+### `open_position`
+Open a new pair position on Pear Protocol. Specify executionType (MARKET / TRIGGER / TWAP / LADDER / TP / SL / SYNC), leverage (1-100), usdValue (≥1), slippage (0.001-0.1), and the long/short asset compositions (arrays of { asset, weight }). Optionally attach stopLoss/takeProfit and TWAP/TRIGGER/LADDER parameters. WRITE: executes a real trade. Requires PEAR_TRADE_ENABLED=true.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `executionType` | string | yes |  |
+| `leverage` | integer | yes |  |
+| `usdValue` | number | yes |  |
+| `slippage` | number | yes |  |
+| `longAssets` | array | yes |  |
+| `shortAssets` | array | yes |  |
+| `triggerValue` | number |  |  |
+| `triggerType` | string |  |  |
+| `direction` | string |  |  |
+| `twapDuration` | number |  |  |
+| `twapIntervalSeconds` | number |  |  |
+| `randomizeExecution` | boolean |  |  |
+| `ladderConfig` | object |  |  |
+| `stopLoss` | unknown |  |  |
+| `takeProfit` | unknown |  |  |
+| `referralCode` | string |  |  |
+
+### `set_risk_parameters`
+Set or update stop-loss / take-profit on an existing Pear Protocol position. Each threshold has type ('PRICE' or 'PERCENTAGE'), value, and optional trailing fields. Pass null to clear a field; omit it to leave unchanged. WRITE: changes risk parameters on a live position. Requires PEAR_TRADE_ENABLED=true.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `positionId` | string | yes |  |
+| `stopLoss` | unknown |  |  |
+| `takeProfit` | unknown |  |  |
 
 <!-- AUTO-GENERATED TOOLS END -->
 
