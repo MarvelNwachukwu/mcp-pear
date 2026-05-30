@@ -28,7 +28,7 @@ async function startServer(): Promise<void> {
 		name: APP_NAME,
 		version: APP_VERSION as `${number}.${number}.${number}`,
 	});
-	// v0.1 — read tools
+	// v0.1: read tools
 	server.addTool(tools.getHealthTool);
 	server.addTool(tools.listMarketsTool);
 	server.addTool(tools.getActiveMarketsTool);
@@ -39,10 +39,10 @@ async function startServer(): Promise<void> {
 	server.addTool(tools.getTradeHistoryTool);
 	server.addTool(tools.getTwapOrdersTool);
 	server.addTool(tools.getPortfolioTool);
-	// v0.2 — agent wallet (1 read, 1 write)
+	// v0.2: agent wallet (1 read, 1 write)
 	server.addTool(tools.getAgentWalletTool);
 	server.addTool(tools.createAgentWalletTool);
-	// v0.2 — trade execution writes (gated on PEAR_TRADE_ENABLED=true)
+	// v0.2: trade execution writes (gated on PEAR_TRADE_ENABLED=true)
 	server.addTool(tools.openPositionTool);
 	server.addTool(tools.closePositionTool);
 	server.addTool(tools.closeAllPositionsTool);
@@ -54,7 +54,7 @@ async function startServer(): Promise<void> {
 
 	if (process.env.PEAR_TRADE_ENABLED === "true") {
 		console.error(
-			"[mcp-pear] PEAR_TRADE_ENABLED=true — trade execution unlocked.",
+			"[mcp-pear] PEAR_TRADE_ENABLED=true. Trade execution unlocked.",
 		);
 	}
 	await server.start({ transportType: "stdio" });

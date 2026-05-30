@@ -19,7 +19,7 @@ const inputSchema = z.object({
 export const closePositionTool = {
 	name: "close_position",
 	description:
-		"Close one open Pear Protocol position by positionId. executionType: MARKET (immediate) or TWAP (spread over time — requires twapDuration in seconds). WRITE: executes a real trade. Requires PEAR_TRADE_ENABLED=true.",
+		"Close one open Pear Protocol position by positionId. executionType: MARKET (immediate) or TWAP (spread over time; requires twapDuration in seconds). WRITE: executes a real trade. Requires PEAR_TRADE_ENABLED=true.",
 	parameters: inputSchema,
 	execute: async (args: z.infer<typeof inputSchema>) => {
 		try {

@@ -52,7 +52,7 @@ export const listMarketsTool = {
 				.slice(0, 5)
 				.map(
 					(m) =>
-						`• ${m.name} — ratio ${m.weightedRatio ?? m.ratio ?? "n/a"}, vol ${formatVol(m.volume)}`,
+						`• ${m.name}: ratio ${m.weightedRatio ?? m.ratio ?? "n/a"}, vol ${formatVol(m.volume)}`,
 				)
 				.join("\n");
 			const summary = `Found ${data.total} markets (page ${data.page} of ${data.totalPages}). Top by volume on this page:\n${top}`;

@@ -18,13 +18,13 @@ const inputSchema = z.object({
 		.string()
 		.optional()
 		.describe(
-			"ISO 8601 timestamp or epoch ms — only return trades on or after this time.",
+			"ISO 8601 timestamp or epoch ms. Only return trades on or after this time.",
 		),
 	endDate: z
 		.string()
 		.optional()
 		.describe(
-			"ISO 8601 timestamp or epoch ms — only return trades on or before this time.",
+			"ISO 8601 timestamp or epoch ms. Only return trades on or before this time.",
 		),
 });
 

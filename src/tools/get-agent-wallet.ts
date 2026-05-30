@@ -7,7 +7,7 @@ const inputSchema = z.object({});
 export const getAgentWalletTool = {
 	name: "get_agent_wallet",
 	description:
-		"Get the authenticated user's Pear Protocol agent wallet address. The agent wallet is what Pear uses to sign Hyperliquid trades on the user's behalf. Returns an empty/missing address if no agent wallet has been created yet — call create_agent_wallet to create one.",
+		"Get the authenticated user's Pear Protocol agent wallet address. The agent wallet is what Pear uses to sign Hyperliquid trades on the user's behalf. Returns an empty/missing address if no agent wallet has been created yet; call create_agent_wallet to create one.",
 	parameters: inputSchema,
 	execute: async () => {
 		try {
