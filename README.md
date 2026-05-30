@@ -3,9 +3,9 @@
 [![npm](https://img.shields.io/npm/v/@marvelcodes/mcp-pear.svg)](https://www.npmjs.com/package/@marvelcodes/mcp-pear)
 [![CI](https://github.com/MarvelNwachukwu/mcp-pear/actions/workflows/push.yml/badge.svg)](https://github.com/MarvelNwachukwu/mcp-pear/actions)
 
-Read-only Model Context Protocol (MCP) server for [Pear Protocol](https://pearprotocol.io). Gives Claude, or any MCP-compatible agent, access to markets, pair ratios, positions, orders, trade history, and portfolio.
+Model Context Protocol (MCP) server for [Pear Protocol](https://pearprotocol.io). Gives Claude, or any MCP-compatible agent, access to markets, pair ratios, positions, orders, trade history, portfolio, and (v0.2) full trade execution on Hyperliquid.
 
-> **v0.1 is read-only.** No signing, no execution, no custody risk. Trade execution lands in v0.2.
+> **v0.2 adds trade execution.** Ten write tools (open, close, and adjust positions; manage leverage and risk; cancel orders) are off by default behind `PEAR_TRADE_ENABLED=true`. Pear signs server-side, so mcp-pear never holds private keys.
 
 ## What is Pear Protocol?
 
@@ -20,7 +20,7 @@ Public (no auth):
 - `get_active_markets`: top gainers, losers, and highlighted pairs
 - `get_pair_ratio`: current ratio, 24h change, and funding for a specific pair
 
-Authenticated:
+Authenticated read:
 
 - `get_account_summary`: your account header
 - `get_open_positions`: your open positions with PnL
@@ -28,8 +28,17 @@ Authenticated:
 - `get_twap_orders`: your active TWAP orders
 - `get_trade_history`: your closed trades with realized PnL
 - `get_portfolio`: bucketed PnL across 1d, 1w, 1m, 1y, and all-time
+- `get_agent_wallet`: the agent wallet Pear uses to sign your trades
 
-Full parameter reference in [Tool reference](#tool-reference).
+Authenticated write (v0.2, gated behind `PEAR_TRADE_ENABLED=true`):
+
+- `create_agent_wallet`: create the agent wallet
+- `open_position`, `close_position`, `close_all_positions`: open and close pair positions
+- `adjust_position`, `adjust_leverage`: change size or leverage on a live position
+- `set_risk_parameters`: set or update TP and SL
+- `cancel_order`, `cancel_twap_order`: cancel pending orders
+
+Full parameter reference in [Tool reference](#tool-reference). See [Trade execution (v0.2)](#trade-execution-v02) for the gate and Hyperliquid funding rules.
 
 ## Install
 
