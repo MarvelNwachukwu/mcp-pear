@@ -1,5 +1,11 @@
 # @marvelcodes/mcp-pear
 
+## 0.2.1
+
+### Patch Changes
+
+- Add `mcpName` and `server.json` for publishing to the official MCP Registry.
+
 ## 0.2.0
 
 ### Minor Changes

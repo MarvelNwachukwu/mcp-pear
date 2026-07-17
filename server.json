@@ -1,0 +1,48 @@
+{
+	"$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+	"name": "io.github.marvelnwachukwu/mcp-pear",
+	"description": "MCP server exposing Pear Protocol's API to AI agents: markets, pair ratios, positions, orders, portfolio, and gated trade execution on Hyperliquid.",
+	"repository": {
+		"url": "https://github.com/MarvelNwachukwu/mcp-pear",
+		"source": "github"
+	},
+	"version": "0.2.1",
+	"packages": [
+		{
+			"registryType": "npm",
+			"identifier": "@marvelcodes/mcp-pear",
+			"version": "0.2.1",
+			"transport": { "type": "stdio" },
+			"environmentVariables": [
+				{
+					"name": "PEAR_API_KEY",
+					"description": "Pear API key for authenticated read/write tools (single-user mode). Public tools work without it.",
+					"isRequired": false,
+					"isSecret": true
+				},
+				{
+					"name": "PEAR_ADDRESS",
+					"description": "Wallet address (0x...) bound to PEAR_API_KEY. Required alongside PEAR_API_KEY.",
+					"isRequired": false
+				},
+				{
+					"name": "PEAR_JWT",
+					"description": "Pre-minted Pear JWT for multi-tenant orchestrators (JWT pass-through mode). Used directly when set.",
+					"isRequired": false,
+					"isSecret": true
+				},
+				{
+					"name": "PEAR_REFRESH_TOKEN",
+					"description": "Refresh token so the server refreshes an expired JWT itself instead of requiring a restart.",
+					"isRequired": false,
+					"isSecret": true
+				},
+				{
+					"name": "PEAR_TRADE_ENABLED",
+					"description": "Set to 'true' to enable the write/trade-execution tools. Off by default.",
+					"isRequired": false
+				}
+			]
+		}
+	]
+}
