@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@marvelcodes/mcp-pear.svg)](https://www.npmjs.com/package/@marvelcodes/mcp-pear)
 [![CI](https://github.com/MarvelNwachukwu/mcp-pear/actions/workflows/push.yml/badge.svg)](https://github.com/MarvelNwachukwu/mcp-pear/actions)
 
+**The Pear Protocol MCP server for Hyperliquid pair trading** — connect Claude, Cursor, or any AI agent to on-chain perps: browse pair markets, read positions and portfolio, and (opt-in) execute pair trades.
+
 Model Context Protocol (MCP) server for [Pear Protocol](https://pearprotocol.io). Gives Claude, or any MCP-compatible agent, access to markets, pair ratios, positions, orders, trade history, portfolio, and (v0.2) full trade execution on Hyperliquid.
 
 > **v0.2 adds trade execution.** Ten write tools (open, close, and adjust positions; manage leverage and risk; cancel orders) are off by default behind `PEAR_TRADE_ENABLED=true`. Pear signs server-side, so mcp-pear never holds private keys.
@@ -364,6 +366,20 @@ Trades execute on Hyperliquid, which margins positions from your **Perps** balan
 ## What's next
 
 **v0.3.** WebSocket streaming for real-time market and position updates. Spot orders. Candle synthesis from Hyperliquid `candleSnapshot`.
+
+## FAQ
+
+**What is the Pear Protocol MCP server?**
+`mcp-pear` is a Model Context Protocol (MCP) server that gives Claude and other AI agents access to [Pear Protocol](https://pearprotocol.io) — a Hyperliquid-backed platform for **pair trading** (long one basket against another). It exposes tools to browse pair markets and ratios, read positions, orders, and portfolio, and optionally execute pair trades.
+
+**How do I build a Pear Protocol trading agent?**
+Point any MCP client at `npx -y @marvelcodes/mcp-pear@latest`. The agent gets read tools out of the box (markets, ratios, positions, portfolio). To let it trade, set `PEAR_TRADE_ENABLED=true` and add `PEAR_API_KEY` + `PEAR_ADDRESS`; it can then call `open_position` (MARKET / TRIGGER / TWAP / LADDER), `close_position`, `adjust_leverage`, and `set_risk_parameters`. See [Claude Desktop](#claude-desktop) and [ADK-TS](#adk-ts) for wiring examples.
+
+**Does it support Hyperliquid pair trading?**
+Yes. Pear runs on Hyperliquid, so every pair position is a long/short perp trade executed on Hyperliquid. `mcp-pear` covers the full lifecycle: open, adjust, set TP/SL, and close.
+
+**Is this the official Pear Protocol MCP server?**
+No. `mcp-pear` is an independent, open-source community project that wraps Pear's public API. It is not affiliated with or endorsed by Pear Protocol.
 
 ## Disclaimer
 
