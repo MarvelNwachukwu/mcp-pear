@@ -1,17 +1,17 @@
 {
 	"$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-	"name": "io.github.marvelnwachukwu/mcp-pear",
+	"name": "io.github.MarvelNwachukwu/mcp-pear",
 	"description": "MCP server for Pear Protocol: markets, positions, orders, portfolio, and gated trade execution.",
 	"repository": {
 		"url": "https://github.com/MarvelNwachukwu/mcp-pear",
 		"source": "github"
 	},
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"packages": [
 		{
 			"registryType": "npm",
 			"identifier": "@marvelcodes/mcp-pear",
-			"version": "0.2.1",
+			"version": "0.2.2",
 			"transport": { "type": "stdio" },
 			"environmentVariables": [
 				{
